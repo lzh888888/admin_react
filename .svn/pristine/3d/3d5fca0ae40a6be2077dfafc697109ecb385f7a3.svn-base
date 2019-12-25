@@ -1,0 +1,44 @@
+import http from '../utils/http';
+
+async function salesTypeData() {
+  return http({
+    method: 'get',
+    url: '/api/sales_type',
+  });
+}
+
+export default {
+  namespace: 'salesType',
+
+  state: {
+    salesTypeData: [],
+    salesTypeDataOnline: [],
+    salesTypeDataOffline: [],
+  },
+
+  effects: {
+    *fetch(_, { call, put }) {
+      const response = yield call(salesTypeData);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+    },
+  },
+
+  reducers: {
+    save(state, { payload }) {
+      return {
+        ...state,
+        ...payload,
+      };
+    },
+    clear() {
+      return {
+        salesTypeData: [],
+        salesTypeDataOnline: [],
+        salesTypeDataOffline: [],
+      };
+    },
+  },
+};

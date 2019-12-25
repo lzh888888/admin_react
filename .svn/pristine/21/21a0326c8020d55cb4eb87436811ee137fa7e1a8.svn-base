@@ -1,0 +1,153 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Select, Radio } from 'antd';
+
+import imgs from '../../../common/imgs';
+import styles from './Printer.less';
+
+const Option = Select.Option;
+
+@connect(({
+  user,
+  rooms,
+  loading,
+}) => ({
+  user,
+  rooms,
+  loading: !!loading.effects['rooms/addParintInfo'],
+}))
+@Form.create()
+export default class extends Component {
+  getOptions() {
+    return this.props.rooms.listData.list.map((v, k) => {
+      return <Option key={k} value={v.billno} >{v.roomname}</Option>;
+    });
+  }
+
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'rooms/_hideModal',
+      payload: { type: 'Printer' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        uid: user.currentUser.phoneno,
+        ...values,
+      };
+      dispatch({ type: 'rooms/addParintInfo', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      rooms: { showModalPrinter },
+      form: { getFieldDecorator, getFieldValue },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="填写信息"
+        maskClosable={false}
+        visible={showModalPrinter}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handleAfterClose}
+      >
+        <div className={styles.imgWrap}>
+          <img src={imgs[`muban_${getFieldValue('qrcodeType')}`]} alt="二维码" />
+        </div>
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} hasFeedback={false} label="二维码模板">
+            {getFieldDecorator('qrcodeType', {
+              initialValue: '1',
+            })(
+              <Radio.Group style={{ width: '100%' }}>
+                <Radio value="1">模板1</Radio>
+                <Radio value="2">模板2</Radio>
+              </Radio.Group>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} hasFeedback={false} label="二维码尺寸(px)">
+            {getFieldDecorator('qrcodeSize', {
+              initialValue: '200',
+            })(
+              <Radio.Group style={{ width: '100%' }}>
+                <Radio value="200">200</Radio>
+                <Radio value="300">300</Radio>
+                <Radio value="500">500</Radio>
+              </Radio.Group>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="房间/台桌">
+            {getFieldDecorator('rooms', {
+              // initialValue: '',
+              rules: [{ required: true, message: '请选择需要打印的房间/台桌' }],
+            })(
+              <Select
+                mode="multiple"
+                placeholder="请选择需要打印的房间/台桌"
+                filterOption={() => false}
+              >
+                {this.getOptions()}
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="收货人">
+            {getFieldDecorator('username', {
+              initialValue: '',
+              rules: [{ required: true, message: '请输入收货人' }],
+            })(
+              <Input placeholder="请输入收货人" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系电话">
+            {getFieldDecorator('phone', {
+              initialValue: '',
+              rules: [{ required: true, message: '请输入联系电话' }],
+            })(
+              <Input placeholder="请输入联系电话" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="收获地址">
+            {getFieldDecorator('address', {
+              initialValue: '',
+              rules: [{ required: true, message: '请输入收获地址' }],
+            })(
+              <Input placeholder="请输入收获地址" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="备注">
+            {getFieldDecorator('remark', {
+              initialValue: '',
+            })(
+              <Input.TextArea placeholder="" autosize={{ minRows: 4, maxRows: 6 }} />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

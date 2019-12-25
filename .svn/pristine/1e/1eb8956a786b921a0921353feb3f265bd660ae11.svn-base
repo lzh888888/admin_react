@@ -1,0 +1,95 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ consumption }) => ({
+  consumption,
+}))((props) => {
+  const {
+    dispatch,
+    consumption: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => { };
+
+  const handCancel = () => {
+    dispatch({
+      type: 'consumption/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+
+  const renderPayway = () => {
+    const { payway } = activeItem;
+    const value = payway;
+    if(value === '1') {
+      return(
+        <span>现金</span>
+      );
+    } else if(value === '2') {
+      return(
+        <span>刷卡</span>
+      );
+    } else if(value === '3') {
+      return(
+        <span>网络</span>
+      );
+    } else if(value === '4') {
+      return(
+        <span>支付宝</span>
+      );
+    } else if(value === '5') {
+      return(
+        <span>微信</span>
+      );
+    } else if(value === '6') {
+      return(
+        <span>会员卡</span>
+      );
+    }
+  }
+
+  const items = [
+    { label: '日期', content: activeItem.billdate },
+    { label: '房/桌号', content: activeItem.tablenum },
+    { label: '合计', content: activeItem.amount },
+    { label: '数量', content: activeItem.qty },
+    { label: '折扣', content: activeItem.discount },
+    { label: '支付方式', content: renderPayway() },
+    { label: '刷卡卡号', content: activeItem.cardno },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

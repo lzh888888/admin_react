@@ -1,0 +1,144 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, InputNumber, Select } from 'antd';
+
+import config from '../../../common/config';
+
+const Option = Select.Option;
+
+@connect(({
+  user,
+  rooms,
+  loading,
+}) => ({
+  user,
+  rooms,
+  loading: !!loading.effects['rooms/edit'],
+}))
+@Form.create()
+export default class extends Component {
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'rooms/_hideModal',
+      payload: { type: 'Edit' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+      rooms: { activeItem },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        flat: '1',
+        uid: user.currentUser.phoneno,
+        billno: activeItem.billno,
+        ...values,
+        area: values.area === '暂无' ? '' : values.area || '',
+        print: values.print === '暂无' ? '' : values.print || '',
+      };
+      dispatch({ type: 'rooms/edit', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      rooms: { showModalEdit, activeItem },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="新增房间/台桌"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalEdit}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="房间/台桌名称">
+            {getFieldDecorator('roomname', {
+              initialValue: activeItem.roomname,
+              rules: [{ required: true, message: '房间/台桌名称' }],
+            })(
+              <Input placeholder="请输入房间/台桌名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="区域">
+            {getFieldDecorator('area', {
+              initialValue: activeItem.area,
+            })(
+              <Select placeholder="房间/台桌在酒店的区域">
+                {config.roomAreaMaps.map((v, k) => (
+                  <Option key={k} value={v}>{v}</Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="类型">
+            {getFieldDecorator('roomtype', {
+              initialValue: activeItem.roomtype,
+            })(
+              <Select>
+                <Option value="0">台桌</Option>
+                <Option value="1">房间</Option>
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印机">
+            {getFieldDecorator('print', {
+              initialValue: activeItem.print,
+            })(
+              <Select placeholder="选择打印机">
+                {config.roomPrintMaps.map((v, k) => (
+                  <Option key={k} value={v}>{v}</Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="序号">
+            {getFieldDecorator('sortno', {
+              initialValue: activeItem.sortno,
+            })(
+              <InputNumber min={0} placeholder="序号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="排队的桌类型">
+            {getFieldDecorator('seats', {
+              initialValue: activeItem.seats,
+            })(
+              <Input placeholder="例：普通饭桌、6人桌" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="房间简介">
+            {getFieldDecorator('remark', {
+              initialValue: activeItem.remark,
+            })(
+              <Input.TextArea placeholder="房间简介" autosize={{ minRows: 4, maxRows: 6 }} />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

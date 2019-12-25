@@ -1,0 +1,145 @@
+import { message } from 'antd';
+import http from '../utils/http';
+
+// 获取
+async function _get(params) {
+  return http({ method: 'get', api: 'getwares', params });
+}
+// 删除
+async function _del(params) {
+  // 根据产品或部件的删除选择api
+  const api = params.type === '1' ? 'deletewares' : 'deletewaresitem2';
+  return http({ method: 'get', api, params });
+}
+// 新增、编辑
+async function _add(data) {
+  return http({ method: 'post', api: 'addwares', data });
+}
+
+const initState = {
+  listData: {
+    list: [],
+    total: 0,
+  },
+
+  // 选中项，编辑和详情需要获取项数据
+  activeItem: {},
+
+  // 弹出框的打开和关闭
+  showModalEdit: false,
+  showModalDetail: false,
+
+  // 请求参数
+  urlP: {
+    page: 1,
+    keyword: '',
+    type: '2', // 0部件 1商品 2部件和商品
+  },
+};
+
+export default {
+  namespace: 'productSearch',
+
+  state: initState,
+
+  effects: {
+    *get(_, { call, put, select }) {
+      try {
+        const { user, productSearch } = yield select(state => state);
+        const params = { ...productSearch.urlP, userno: user.currentUser.userno };
+
+        const { success, msg, data } = yield call(_get, params);
+        if (success === '1') {
+          yield put({
+            type: 'appendListData',
+            payload: { list: data.list, total: Number(data.total) },
+          });
+        } else {
+          message.warn(msg);
+          yield put({
+            type: 'appendListData',
+            payload: { list: [], total: 0 },
+          });
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    *del({ payload }, { call, put }) {
+      try {
+        const { success, msg } = yield call(_del, payload);
+        if (success === '1') {
+          // 如果是删除部件则刷新
+          if (payload.type === '0') {
+            yield put({ type: 'get' });
+          }
+          message.success(msg);
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    *edit({ payload }, { put, call }) {
+      try {
+        const { success, msg } = yield call(_add, payload);
+        if (success === '1') {
+          message.success(msg);
+          yield put({ type: 'hideModal', payload: { type: 'Edit' } });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+  },
+
+  reducers: {
+    appendListData(state, action) {
+      return {
+        ...state,
+        listData: action.payload,
+      };
+    },
+
+    // 修改请求参数
+    reUrlP(state, action) {
+      return {
+        ...state,
+        urlP: {
+          ...state.urlP,
+          ...action.payload,
+        },
+      };
+    },
+
+    showModal(state, { payload }) {
+      // 编辑和详情才需要项数据
+      if (payload.type === 'Edit' || payload.type === 'Detail') {
+        return {
+          ...state,
+          activeItem: payload.item || {},
+          [`showModal${payload.type}`]: true,
+        };
+      } else {
+        return {
+          ...state,
+          [`showModal${payload.type}`]: true,
+        };
+      }
+    },
+
+    hideModal(state, { payload }) {
+      return { ...state, [`showModal${payload.type}`]: false };
+    },
+
+    // 该页面注销后要清除当前的状态，防止下次进来还是之前的数据
+    clear() {
+      return initState;
+    },
+  },
+};

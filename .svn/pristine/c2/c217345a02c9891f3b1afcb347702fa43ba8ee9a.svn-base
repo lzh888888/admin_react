@@ -1,0 +1,219 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Button, Spin, Table, Card, Divider, Popconfirm, Menu, Dropdown, Icon } from 'antd';
+
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+import Add from './Add';
+import Edit from './Edit';
+import Detail from './Detail';
+import Printer from './Printer';
+import CreateQRCode from './CreateQRCode';
+
+import styles from './index.less';
+
+@connect(({
+  user,
+  rooms,
+  loading,
+}) => ({
+  user,
+  rooms,
+  getLoading: !!loading.effects['rooms/get'],
+  delLoading: !!loading.effects['rooms/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '房间名',
+      dataIndex: 'roomname',
+      width: 130,
+    }, {
+      title: '房间类型',
+      dataIndex: 'seats',
+      width: 130,
+    }, {
+      title: '区域',
+      dataIndex: 'area',
+      width: 130,
+    }, {
+      title: '序号',
+      dataIndex: 'sortno',
+      width: 90,
+      sorter: true,
+      defaultSortOrder: 'ascend',
+    }, {
+      title: '打印机',
+      dataIndex: 'print',
+      width: 110,
+    }, {
+      title: '备注',
+      dataIndex: 'remark',
+      width: 130,
+    }, {
+      key: '_fill_',
+    }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 130,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Dropdown
+            overlay={
+              <Menu>
+                <Menu.Item>
+                  <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+                </Menu.Item>
+                <Menu.Item>
+                  <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+                    <a>删除</a>
+                  </Popconfirm>
+                </Menu.Item>
+                <Menu.Item>
+                  <a onClick={() => this.onAction(text, '二维码')}>生成二维码</a>
+                </Menu.Item>
+              </Menu>
+            }
+          >
+            <a>更多 <Icon type="down" /></a>
+          </Dropdown>
+        </Fragment>
+      ),
+    }];
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'rooms/_clear' });
+  }
+
+  // 查询
+  onSearch(value) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'rooms/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'rooms/del',
+        payload: {
+          uid: phoneno,
+          billno: item.billno,
+        },
+      });
+    } else if (type === '二维码') {
+      this.props.dispatch({
+        type: 'rooms/_showModal',
+        payload: { type: 'QRCode', item },
+      });
+    }
+  }
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'rooms/get' });
+  }
+
+  handleTableChange = (pagination, filters, sorter) => {
+    const params = {};
+    if (sorter.field) {
+      params.sorter = `${sorter.field}_${sorter.order}`;
+    } else {
+      params.sorter = '';
+    }
+    this.changeReqParams(params);
+  }
+
+  // 修改所需的请求参数后再获取数据
+  changeReqParams = (params) => {
+    this.props.dispatch({
+      type: 'rooms/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 查看详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'rooms/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  // 添加
+  gotoAdd = () => {
+    this.props.dispatch({
+      type: 'rooms/_showModal',
+      payload: { type: 'Add', item: {} },
+    });
+  }
+
+  // 打印
+  gotoPrinter = () => {
+    this.props.dispatch({
+      type: 'rooms/_showModal',
+      payload: { type: 'Printer', item: {} },
+    });
+  }
+
+  render() {
+    const {
+      rooms: { listData },
+      getLoading,
+      delLoading,
+    } = this.props;
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={getLoading || delLoading}>
+            <Card
+              className={styles.listCard}
+              bordered={false}
+            >
+              <div className={styles.tableListOperator}>
+                <Button icon="plus" type="primary" onClick={this.gotoAdd}>
+                  新增
+                </Button>
+                <Button icon="printer" type="primary" onClick={this.gotoPrinter}>
+                  打印桌号二维码服务
+                </Button>
+              </div>
+              <Table
+                // className={styles.table}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                columns={this.columns}
+                dataSource={listData.list}
+                onChange={this.handleTableChange}
+                pagination={false}
+              />
+            </Card>
+          </Spin>
+        </div>
+        <Add />
+        <Edit />
+        <Detail />
+        <Printer />
+        <CreateQRCode />
+      </PageHeaderLayout>
+    );
+  }
+}

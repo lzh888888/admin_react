@@ -1,0 +1,237 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Switch } from 'antd';
+
+import ChooseImage from '../../cps/ChooseImage';
+
+@connect(({ user, productSearch, loading }) => ({
+  user,
+  productSearch,
+  editLoading: loading.effects['productSearch/edit'] || false,
+}))
+@Form.create()
+export default class extends Component {
+  constructor(props) {
+    super(props);
+    this.images = {};
+  }
+
+  // 弹出框关闭后要清空
+  handAfterClose = () => {
+    this.images = {};
+  }
+
+  handCancel = () => {
+    this.props.dispatch({ type: 'productSearch/hideModal', payload: { type: 'Edit' } });
+  }
+
+  // 请求
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      dispatch,
+      user: { currentUser },
+      form: { validateFieldsAndScroll },
+      productSearch: { activeItem },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      // 处理price的显示和隐藏 0显示1隐藏
+      const _values = {
+        ...values,
+        ptype: values.ptype ? '0' : '1',
+        ptype2: values.ptype2 ? '0' : '1',
+        ptype3: values.ptype3 ? '0' : '1',
+      };
+      const data = {
+        key: '1', // 0新增 1编辑
+        image: activeItem.image,
+        image1: activeItem.image1,
+        image2: activeItem.image2,
+        image3: activeItem.image3,
+        bno: activeItem.billno,
+        type: activeItem.type, // 产品类型 0部件 1商品
+        userno: currentUser.userno,
+        username: currentUser.username,
+        ...this.images,
+        ..._values,
+      };
+      dispatch({ type: 'productSearch/edit', payload: data }).then(() => {
+        // 如果处理成功则弹出提示
+      });
+    });
+  }
+
+  renderPriceVisibleSwitch = (field, checked) => {
+    let _checked;
+    if (checked === '0') {
+      _checked = true;
+    } else {
+      _checked = false;
+    }
+    return (
+
+      this.props.form.getFieldDecorator(field, {
+        initialValue: _checked,
+      })(
+        <Switch defaultChecked={_checked} checkedChildren="显示" unCheckedChildren="隐藏" />
+      )
+    );
+  }
+
+  renderAvatar = () => {
+    const { image, image2, image3 } = this.props.productSearch.activeItem;
+    return (
+      <div className="avatar-container">
+        <ChooseImage
+          source={image} // 显示缩略图
+          onClear={() => this.images.image1 = ''}
+          onChange={base64 => this.images.image1 = base64}
+        />
+        <ChooseImage
+          source={image2}
+          onClear={() => this.images.image2 = ''}
+          onChange={base64 => this.images.image2 = base64}
+        />
+        <ChooseImage
+          source={image3}
+          onClear={() => this.images.image3 = ''}
+          onChange={base64 => this.images.image3 = base64}
+        />
+      </div>
+    );
+  }
+
+  render() {
+    const {
+      editLoading,
+      productSearch: { showModalEdit, activeItem: item },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="修改产品"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalEdit}
+        confirmLoading={editLoading}
+        onOk={this.handleSubmit}
+        onCancel={this.handCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="图片">
+            {this.renderAvatar()}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="物料码">
+            {getFieldDecorator('waresbno', {
+              initialValue: item.waresbno,
+              rules: [{ required: true, message: '请输入物料码' }],
+            })(
+              <Input placeholder="物料码" disabled />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="名称">
+            {getFieldDecorator('waresname', {
+              initialValue: item.waresname,
+              rules: [{ required: true, message: '请输入名称' }],
+            })(
+              <Input placeholder="名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="别称">
+            {getFieldDecorator('nickname', {
+              initialValue: item.nickname,
+            })(
+              <Input placeholder="别称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="型号1">
+            {getFieldDecorator('model', {
+              initialValue: item.model,
+              rules: [{ required: true, message: '请输入型号1' }],
+            })(
+              <Input placeholder="型号1" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="型号2">
+            {getFieldDecorator('model2', {
+              initialValue: item.model2,
+            })(
+              <Input placeholder="型号2" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="型号3">
+            {getFieldDecorator('model3', {
+              initialValue: item.model3,
+            })(
+              <Input placeholder="型号3" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="品牌">
+            {getFieldDecorator('brand', {
+              initialValue: item.brand,
+            })(
+              <Input placeholder="品牌" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="来源">
+            {getFieldDecorator('origin', {
+              initialValue: item.origin,
+            })(
+              <Input placeholder="来源" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="单位">
+            {getFieldDecorator('unit', {
+              initialValue: item.unit,
+            })(
+              <Input placeholder="单位" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="位置">
+            {getFieldDecorator('waddress', {
+              initialValue: item.waddress,
+            })(
+              <Input placeholder="位置" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="批发价">
+            {getFieldDecorator('price', { initialValue: item.price })(
+              <Input placeholder="请输入批发价" addonAfter={this.renderPriceVisibleSwitch('ptype', item.ptype)} />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="采购价">
+            {getFieldDecorator('price2', { initialValue: item.price2 })(
+              <Input placeholder="请输入采购价" addonAfter={this.renderPriceVisibleSwitch('ptype2', item.ptype2)} />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="市场价">
+            {getFieldDecorator('price3', { initialValue: item.price3 })(
+              <Input placeholder="请输入市场价" addonAfter={this.renderPriceVisibleSwitch('ptype3', item.ptype3)} />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="备注">
+            {getFieldDecorator('description', {
+              initialValue: item.description,
+            })(
+              <Input.TextArea placeholder="备注" autosize={{ minRows: 4, maxRows: 6 }} />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

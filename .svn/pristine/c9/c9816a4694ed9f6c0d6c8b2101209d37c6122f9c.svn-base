@@ -1,0 +1,100 @@
+import React, { PureComponent } from 'react';
+import { connect } from 'dva';
+import { Modal, Spin, Avatar, Table, message } from 'antd';
+
+import imgs from '../../common/imgs';
+
+@connect(({
+  selectCustomer,
+  loading,
+}) => ({
+  selectCustomer,
+  loading: !!loading.effects['selectCustomer/get'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '头像',
+      dataIndex: 'image',
+      render: text => (
+        <Avatar src={text || imgs['logo']} shape="square" size="large" />
+      ),
+    }, {
+      title: '客户名称',
+      dataIndex: 'username',
+    }];
+
+    this.state = {
+      selectedRowKeys: [],
+      selectedRows: [],
+    };
+  }
+
+  onSelectChange = (selectedRowKeys, selectedRows) => {
+    this.setState({ selectedRowKeys, selectedRows });
+  }
+
+  handleOk = () => {
+    const item = this.state.selectedRows[0];
+    if (item) {
+      this.props.handOk(item);
+      this.handCancel();
+    } else {
+      message.info('请选择一项！');
+    }
+  }
+
+  handCancel = () => {
+    this.props.dispatch({
+      type: 'selectCustomer/modalVisible',
+      payload: { show: false },
+    });
+  }
+
+  handAfterClose = () => {
+    this.setState({
+      selectedRowKeys: [],
+      selectedRows: [],
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      selectCustomer: { modalVisible, listData },
+    } = this.props;
+
+    const rowSelection = {
+      type: 'radio',
+      selectedRowKeys: this.state.selectedRowKeys,
+      onChange: this.onSelectChange,
+    };
+
+    return (
+      <Modal
+        title="选择客户"
+        destroyOnClose
+        visible={modalVisible}
+        maskClosable={false}
+        onOk={this.handleOk}
+        onCancel={this.handCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Spin spinning={loading}>
+          <Table
+            scroll={{ y: 300 }}
+            size="middle"
+            bordered={false}
+            pagination={false}
+            rowKey="id"
+            columns={this.columns}
+            dataSource={listData.list}
+            rowSelection={rowSelection}
+          />
+        </Spin>
+      </Modal>
+    );
+  }
+}
+

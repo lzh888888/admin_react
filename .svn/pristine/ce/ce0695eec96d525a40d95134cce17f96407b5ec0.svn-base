@@ -1,0 +1,90 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+import ChooseImage from '../../../cps/ChooseImage';
+
+export default connect(({ customer }) => ({
+  customer,
+}))((props) => {
+  const {
+    dispatch,
+    customer: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => { };
+
+  const handCancel = () => {
+    dispatch({
+      type: 'customer/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const renderAvatar = () => {
+    const { image1, image2, image3 } = activeItem;
+    return (
+      <div className="avatar-container">
+        {!!image1 && <ChooseImage isClearIcon={false} source={image1} />}
+        {!!image2 && <ChooseImage isClearIcon={false} source={image2} />}
+        {!!image3 && <ChooseImage isClearIcon={false} source={image3} />}
+      </div>
+    );
+  };
+
+  const renderAllow = () => {
+    const { allow } = activeItem;
+    const value = allow;
+    if (value === '1') {
+      return <span>是</span>;
+    } else if (value === '0') {
+      return <span>否</span>;
+    }
+  };
+
+  const items = [
+    { label: '客户名称', content: activeItem.username },
+    { label: '公司名称', content: activeItem.title },
+    { label: '联系人', content: activeItem.linkman },
+    { label: '联系电话', content: activeItem.tel },
+    { label: '联系地址', content: activeItem.address },
+    { label: '许可证', content: activeItem.license },
+    { label: '合同金额', content: activeItem.amount },
+    { label: '已付金额', content: activeItem.paid },
+    { label: '是否允许使用', content: renderAllow() },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+        {renderAvatar()}
+      </div>
+    </Modal>
+  );
+});

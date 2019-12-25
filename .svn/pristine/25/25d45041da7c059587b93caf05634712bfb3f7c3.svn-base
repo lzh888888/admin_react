@@ -1,0 +1,487 @@
+@import '~antd/lib/style/themes/default.less';
+@import '../../utils/utils.less';
+
+.activitiesList {
+  padding: 0 24px 8px 24px;
+  .username {
+    color: @text-color;
+  }
+  .event {
+    font-weight: normal;
+  }
+}
+
+.pageHeaderContent {
+  display: flex;
+  .avatar {
+    flex: 0 1 72px;
+    margin-bottom: 8px;
+    & > span {
+      border-radius: 72px;
+      display: block;
+      width: 72px;
+      height: 72px;
+    }
+  }
+  .content {
+    position: relative;
+    top: 4px;
+    margin-left: 24px;
+    flex: 1 1 auto;
+    color: @text-color-secondary;
+    line-height: 22px;
+    .contentTitle {
+      font-size: 20px;
+      line-height: 28px;
+      font-weight: 500;
+      color: @heading-color;
+      margin-bottom: 12px;
+    }
+  }
+}
+
+
+.extraContent {
+  .clearfix();
+  float: right;
+  white-space: nowrap;
+  .statItem {
+    padding: 0 32px;
+    position: relative;
+    display: inline-block;
+    > p:first-child {
+      color: @text-color-secondary;
+      font-size: @font-size-base;
+      line-height: 22px;
+      margin-bottom: 4px;
+    }
+    > p {
+      color: @heading-color;
+      font-size: 30px;
+      line-height: 38px;
+      margin: 0;
+      > span {
+        color: @text-color-secondary;
+        font-size: 20px;
+      }
+    }
+    &:after {
+      background-color: @border-color-split;
+      position: absolute;
+      top: 8px;
+      right: 0;
+      width: 1px;
+      height: 40px;
+      content: '';
+    }
+    &:last-child {
+      padding-right: 0;
+      &:after {
+        display: none;
+      }
+    }
+  }
+}
+
+.sliderbg {
+  background-color: #eae4e4;
+}
+
+.slider {
+  overflow: hidden;
+  // height: 300px;
+}
+
+
+.projectList {
+  :global {
+    .ant-card-meta-description {
+      color: @text-color-secondary;
+      height: 44px;
+      line-height: 22px;
+      overflow: hidden;
+    }
+  }
+  .cardTitle {
+    font-size: 0;
+    a {
+      color: @heading-color;
+      margin-left: 12px;
+      line-height: 24px;
+      height: 24px;
+      display: inline-block;
+      vertical-align: top;
+      font-size: @font-size-base;
+      &:hover {
+        color: @primary-color;
+      }
+    }
+  }
+  .projectGrid {
+    width: 33.33%;
+  }
+}
+
+.datetime {
+  color: @disabled-color;
+}
+
+.salesExtra {
+  display: inline-block;
+  margin-right: 24px;
+  a {
+    color: @text-color;
+    margin-left: 24px;
+    &:hover {
+      color: @primary-color;
+    }
+    &.currentDate {
+      color: @primary-color;
+    }
+  }
+}
+
+
+.salesCard {
+  .salesBar {
+    padding: 0 0 32px 32px;
+  }
+  .salesRank {
+    padding: 0 32px 32px 72px;
+  }
+  :global {
+    .ant-tabs-bar {
+      padding-left: 16px;
+      .ant-tabs-nav .ant-tabs-tab {
+        padding-top: 16px;
+        padding-bottom: 14px;
+        line-height: 24px;
+      }
+    }
+    .ant-tabs-extra-content {
+      padding-right: 24px;
+      line-height: 55px;
+    }
+    .ant-card-head {
+      position: relative;
+    }
+  }
+}
+
+.salesCardExtra {
+  height: 68px;
+}
+.salesTypeRadio {
+  position: absolute;
+  left: 24px;
+  bottom: 15px;
+}
+
+
+@media screen and (max-width: @screen-xl)  and (min-width: @screen-lg) {
+  .activeCard {
+    margin-bottom: 24px;
+  }
+  .members {
+    margin-bottom: 0;
+  }
+  .extraContent {
+    margin-left: -44px;
+    .statItem {
+      padding: 0 16px;
+    }
+  }
+}
+
+.mainSearch {
+  width: 522px;
+}
+
+@media screen and (max-width: @screen-lg) {
+  .activeCard {
+    margin-bottom: 24px;
+  }
+  .members {
+    margin-bottom: 0;
+  }
+  .extraContent {
+    float: none;
+    margin-right: 0;
+    .statItem {
+      padding: 0 16px;
+      text-align: left;
+      &:after {
+        display: none;
+      }
+    }
+  }
+  .salesExtra {
+    display: none;
+  }
+}
+
+@media screen and (max-width: @screen-md) {
+  .extraContent {
+    margin-left: -16px;
+  }
+  .projectList {
+    .projectGrid {
+      width: 50%;
+    }
+  }
+  .salesCard .salesBar {
+    padding: 16px;
+  }
+}
+
+@media screen and (max-width: @screen-sm) {
+  .pageHeaderContent {
+    display: block;
+    .content {
+      margin-left: 0;
+    }
+  }
+  .extraContent {
+    .statItem {
+      float: none;
+    }
+  }
+  .salesCard {
+    :global {
+      .ant-tabs-content {
+        padding-top: 30px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: @screen-xs) {
+  .projectList {
+    .projectGrid {
+      width: 100%;
+    }
+  }
+  .mainSearch {
+    width: 100%;
+  }
+}
+
+// 今日营业概况
+.title1{
+  width: 100%;
+  height: 50px;
+  background: white;
+  line-height: 50px;
+  padding-left: 10px;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 1px;
+}
+.title1>h1{
+  font-weight: 900;
+}
+.business{
+  width: 100%;
+  background: #85c8dd;
+  margin-bottom: 10px;
+}
+.business_div{
+  width: 95%;
+  height: 50px;
+  margin: 0 auto;
+  margin-bottom: 2px;
+  line-height: 50px;
+  font-size: 15px;
+  color: white;
+}
+.business_div:nth-of-type(1){
+  border-bottom: 1px solid white;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+.business_div>div{
+  width: 30%;
+  height: 100%;
+  float: left;
+  color: white;
+  line-height: 50px;
+}
+.business_div>div:nth-of-type(2){
+  width: 70%;
+  text-align: right;
+}
+.business_div:nth-of-type(2){
+  font-weight: 500;
+  color: red;
+  font-size: 16px;
+}
+.business>div:nth-of-type(3){
+  text-align: right;
+  height: 30px;
+  line-height: 30px;
+}
+.business>div:nth-of-type(4){
+  font-size: 18px;
+  font-weight: 500;
+  color: red;
+}
+.layIn{
+  width: 100%;
+  background: rgb(84, 184, 3);
+  margin-bottom: 10px;
+}
+.layIn_div{
+  width: 95%;
+  height: 66px;
+  // background: red;
+  margin: 0 auto;
+  margin-bottom: 2px;
+  line-height: 66px;
+  font-size: 16px;
+  color: white;
+}
+.layIn>div:nth-of-type(1){
+  height: 50px;
+  line-height: 50px;
+  border-bottom: 1px solid white;
+  box-sizing: border-box;
+}
+.layIn>div:nth-of-type(2){
+  text-align: right;
+}
+.layIn>div:nth-of-type(3){
+  color: red;
+  font-weight: 500;
+  font-size: 18px;
+}
+.noPay{
+  width: 100%;
+  background: #f68787;
+  margin-bottom: 10px;
+}
+.noPay_div{
+  width: 95%;
+  height: 66px;
+  // background: red;
+  margin: 0 auto;
+  margin-bottom: 2px;
+  line-height: 66px;
+  color: white;
+  font-size: 16px;
+}
+.noPay>div:nth-of-type(1){
+  border-bottom: 1px solid white;
+  box-sizing: border-box;
+  height: 50px;
+  line-height: 50px;
+}
+.noPay>div:nth-of-type(2){
+  text-align: right;
+}
+.noPay>div:nth-of-type(3){
+  color: #00ff00;
+  font-size: 18px;
+  font-weight: 500;
+}
+.preferentialMoney{
+  width: 100%;
+  background: #82c7eb;
+  margin-bottom: 10px;
+}
+.preferentialMoney_div{
+  width: 95%;
+  height: 66px;
+  margin: 0 auto;
+  margin-bottom: 2px;
+  line-height: 66px;
+  color: white;
+  font-size: 16px;
+}
+.preferentialMoney>div:nth-of-type(1){
+  border-bottom: 1px solid white;
+  box-sizing: border-box;
+  height: 50px;
+  line-height: 50px;
+}
+.preferentialMoney>div:nth-of-type(2){
+  text-align: right;
+}
+.preferentialMoney>div:nth-of-type(3){
+  color: red;
+  font-size: 18px;
+  font-weight: 500;
+}
+// 今日营业概况结束
+// 今日营销概况
+.title2{
+  width: 100%;
+  height: 50px;
+  background: white;
+  line-height: 50px;
+  padding-left: 10px;
+  // color: black;
+  // margin-top: 5px;
+  margin-bottom: 1px;
+  box-sizing: border-box;
+}
+.title2>div{
+  width: 40%;
+  height: 100%;
+  float: left;
+  font-size: 16px;
+}
+.title2>div>h1{
+  line-height: 50px;
+  
+  font-weight: 900;
+}
+.title2>div:nth-of-type(2){
+  width: 60%;
+  height: 100%;
+  float: right;
+  text-align: right;
+  padding-right: 10px;
+}
+.echartsContainer1{
+  width: 100%;
+  height: 400px;
+  background: white;
+  margin-bottom: 10px;
+}
+//今日营销概况结束
+
+//今日销量排行
+.goodsTop{
+  width: 100%;
+  min-height: 400px;
+  background: white;
+  margin-bottom: 10px;
+}
+.goodsTop>div{
+  width: 100%;
+}
+.goodsTop>div:nth-of-type(1){
+  height: 40px;
+  // background: red;
+  text-align: center;
+  line-height: 40px;
+  font-size: 16px;
+}
+.goodsClassTop{
+  width: 100%;
+  min-height: 400px;
+  background: white;
+  margin-bottom: 10px;
+}
+.goodsClassTop>div{
+  width: 100%;
+}
+.goodsClassTop>div:nth-of-type(1){
+  height: 40px;
+  // background: red;
+  text-align: center;
+  line-height: 40px;
+  font-size: 16px;
+}
+//今日销量排行结束
+

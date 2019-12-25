@@ -1,0 +1,371 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Button, Spin, Table, Card, Divider, Popconfirm, Dropdown, Avatar, Menu, Icon } from 'antd';
+
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+import AddFoods from './AddFoods';
+import AddType from './AddType';
+import EditFoods from './EditFoods';
+import EditType from './EditType';
+import Detail from './Detail';
+import imgs from '../../../common/imgs';
+
+import styles from './index.less';
+
+@connect(({
+  user: { currentUser },
+  dishes,
+  loading,
+}) => ({
+  currentUser,
+  dishes,
+  typeLoading: !!loading.effects['dishes/gettype'],
+  listLoading: !!loading.effects['dishes/getfoods'],
+  dellistLoading: !!loading.effects['dishes/delfoods'],
+  deltypeLoading: !!loading.effects['dishes/deltype'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isEditTypeStatus: false,
+      activeIndex: 0, //选择的菜单类型
+    }
+    this.columns = [{
+      title: '图片',
+      dataIndex: 'image',
+      width: 90,
+      render: (text) => {
+        return (
+          <Avatar src={text || imgs['logo']} shape="square" size="large" />
+        );
+      },
+    }, {
+      title: '菜品名',
+      dataIndex: 'foodname',
+      width: 180,
+    }, {
+      title: '菜品类型',
+      dataIndex: 'typename',
+      width: 180,
+    }, {
+      title: '菜品份量',
+      dataIndex: 'volume',
+      width: 180,
+    }, {
+      title: '味道可选',
+      dataIndex: 'cookway',
+      width: 180,
+    }, {
+      title: '售价能否编辑',
+      dataIndex: 'editable',
+      width: 180,
+      render: (value) => {
+        if (value === '1') {
+          return (
+            <span>能</span>
+          );
+        } else {
+          return false;
+        }
+      },
+    }, {
+      title: '现价',
+      dataIndex: 'price',
+      width: 180,
+    }, {
+      title: '单位',
+      dataIndex: 'unit',
+      width: 180,
+    }, {
+      title: '零售价',
+      dataIndex: 'retailprice',
+      width: 180,
+    }, {
+    //   title: '特色',
+    //   dataIndex: 'feature',
+    //   width: 180,
+    // }, {
+      title: '打印机',
+      dataIndex: 'print',
+      width: 180,
+    }, {
+      title: '日限量',
+      dataIndex: 'sellqty',
+      width: 180,
+    }, {
+      title: '是否在售',
+      dataIndex: 'onsale',
+      width: 370,
+      render: (value) => {
+        if (value === '1') {
+          return (
+            <span>在售</span>
+          );
+        } else {
+          return false;
+        }
+      },
+    }, {
+    //   title: '详细描述',
+    //   dataIndex: 'memo',
+    //   width: 180,
+    // }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 180,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Dropdown
+            overlay={
+              <Menu>
+                <Menu.Item>
+                  <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+                </Menu.Item>
+                <Menu.Item>
+                  <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+                    <a>删除</a>
+                  </Popconfirm>
+                </Menu.Item>
+              </Menu>
+            }
+          >
+            <a>更多 <Icon type="down" /></a>
+          </Dropdown>
+        </Fragment>
+      ),
+    }];
+
+  }
+
+  componentDidMount() {
+    this.getType();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'dishes/_reset' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    // const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'dishes/_showModal',
+        payload: { type: 'Editfoods', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'dishes/delfoods',
+        payload: {
+          sid: item.id,
+        },
+      });
+    }
+  }
+
+  //改变菜单的请求数据
+  onChangeActiveIndex = (index) =>{
+    this.setState({
+      activeIndex: index
+    }), 
+    this.getList();
+  }
+
+  
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.changeReqParams({
+      page: pagination.current,
+    });
+  }
+
+  // 切换菜品类型编辑状态
+  onToggleEdit = () => {
+    this.setState({
+      isEditTypeStatus: !this.state.isEditTypeStatus,
+    })
+  }
+
+  // 获取菜品类型数据
+  getType = () => {
+    this.props.dispatch({ type: 'dishes/gettype' }).then((bool) => {
+      if (bool) {
+        this.getList();
+      }
+    });
+  }
+
+  // 获取该类型下的所有菜品
+  getList = async (index) => {
+    const { dispatch } = this.props;
+     await dispatch({
+      type: 'dishes/_changeReqParams',
+      payload: { activeIndex: this.state.activeIndex, },
+    });
+    await dispatch({
+      type: 'dishes/_appendTypeData',
+      payload: {
+        activeIndex: this.state.activeIndex,
+      },
+    });
+    dispatch({ type: 'dishes/getfoods' });
+  }
+
+  // 修改所需的请求参数后再获取数据
+  changeReqParams = (params) => {
+    this.props.dispatch({
+      type: 'dishes/_changeReqParams',
+      payload: { item: params },
+    });
+    this.getList();
+  }
+
+  // 查看详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'dishes/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  // 添加菜品
+  gotoAddFoods = () => {
+    this.props.dispatch({
+      type: 'dishes/_showModal',
+      payload: { type: 'Addfoods', item: {} },
+    });
+  }
+
+  // 添加菜品类型
+  gotoAddType = () => {
+    this.props.dispatch({
+      type: 'dishes/_showModal',
+      payload: { type: 'Addtype', item: {} },
+    });
+  }
+
+  gotoEditType = (item) => {
+    this.props.dispatch({
+      type: 'dishes/_showModal',
+      payload: { type: 'Edittype', item },
+    });
+  }
+
+  gotoDelType = (item) => {
+    const { phoneno } = this.props.currentUser;
+    this.props.dispatch({
+      type: 'dishes/deltype',
+      payload: {
+        uid: phoneno,
+        billno: item.billno,
+      },
+    });
+  }
+
+  render() {
+    const {
+      dishes: { typeData, listData, reqParams },
+      typeLoading,
+      listLoading,
+      dellistLoading,
+      deltypeLoading,
+    } = this.props;
+    return (
+      <PageHeaderLayout>
+        <Spin spinning={typeLoading || listLoading || dellistLoading || deltypeLoading}>
+          <div className={styles.tableList}>
+            <Card
+              bordered={false}
+              className={styles.typeCard}
+              style={{ marginBottom: 20 }}
+            >
+              { <span  style={{ position: 'relative', display: 'inline-block', marginRight: 20, marginBottom: 20 }}>
+                <Button
+                  style={{ marginRight: 0 }}
+                  onClick={() => this.onChangeActiveIndex("0000")}
+                  //onClick={() => this.getList("0000")}
+                  type={typeData.activeIndex === '0000' ? 'primary' : 'default'}
+                >
+                  全部
+                </Button>
+              </span> }
+              {typeData.list.map((v, k) => (
+                <span key={k} style={{ position: 'relative', display: 'inline-block', marginRight: 20, marginBottom: 20 }}>
+                  <Button
+                    style={{ marginRight: 0 }}
+                    onClick={() => this.onChangeActiveIndex(k)}
+                    type={typeData.activeIndex === k ? 'primary' : 'default'}
+                  >
+                    {v.typename}
+                  </Button>
+                  {/* {this.state.isEditTypeStatus &&
+                    <a style={{ marginLeft: 3 }} onClick={() => this.gotoEditType(v)}>修改</a>
+                  }
+                  {this.state.isEditTypeStatus &&
+                    <Popconfirm title="确定删除？" onConfirm={() => this.gotoDelType(v)}><a style={{marginLeft: 3}}>删除</a></Popconfirm>
+                    // <a style={{ marginLeft: 3 }} onClick={() => this.gotoDelType(v)}>删除</a>
+                  } */}
+                  {this.state.isEditTypeStatus && (
+                    <div className={styles.iconWrap}>
+                      <Icon type="edit" onClick={() => this.gotoEditType(v)} />
+                      <Popconfirm title="确定删除？" onConfirm={() => this.gotoDelType(v)}><Icon type="delete" /></Popconfirm>
+                    </div>
+                  )}
+                </span>
+              ))}
+            </Card>
+            {typeData.list.length > 0 && (
+              <Card
+                className={styles.listCard}
+                bordered={false}
+              >
+                <div className={styles.tableListOperator}>
+                  <Button icon="plus" type="primary" onClick={this.gotoAddType}>
+                    新增菜品类型
+                  </Button>
+                  <Button icon="edit" type="primary" onClick={this.onToggleEdit}>
+                    编辑菜品类型
+                  </Button>
+                  <Button icon="plus" type="primary" onClick={this.gotoAddFoods}>
+                    新增菜品
+                  </Button>
+                </div>
+                <Table
+                  // scroll={{ x: 1250, y: 350 }}
+                  rowKey="id"
+                  columns={this.columns}
+                  dataSource={listData.list}
+                  onChange={this.onPageSwitch}
+                  pagination={{
+                    // current: reqParams.page,
+                    defaultCurrent: 1,
+                    defaultPageSize: 15,
+                    total: listData.total,
+                  }}
+                />
+              </Card>
+            )}
+          </div>
+        </Spin>
+        <AddType />
+        <AddFoods />
+        <EditType />
+        <EditFoods />
+        <Detail />
+      </PageHeaderLayout>
+    );
+  }
+}

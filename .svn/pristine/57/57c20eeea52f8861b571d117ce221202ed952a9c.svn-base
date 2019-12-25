@@ -1,0 +1,205 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Spin, Table, Card, Divider, Popconfirm } from 'antd';
+
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+// import Add from './Add';
+// import Edit from './Edit';
+import Detail from './Detail';
+
+import styles from './index.less';
+
+@connect(({
+  user,
+  receivables,
+  loading,
+}) => ({
+  user,
+  receivables,
+  getLoading: !!loading.effects['receivables/get'],
+  delLoading: !!loading.effects['receivables/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '商户订单号',
+      dataIndex: 'billno',
+      width: 180,
+    }, {
+      title: '交易日期',
+      dataIndex: 'billdate',
+      width: 180,
+    }, {
+      title: '订单金额',
+      dataIndex: 'payval',
+      width: 180,
+    }, {
+      title: '应付金额',
+      dataIndex: 'cash_fee',
+      width: 180,
+    }, {
+      title: '货币种类',
+      dataIndex: 'fee_type',
+      width: 180,
+    }, {
+      title: '交易状态',
+      dataIndex: 'result_code',
+      width: 180,
+    }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 180,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+            <a>删除</a>
+          </Popconfirm>
+          {/* <Dropdown
+            overlay={
+              <Menu>
+                <Menu.Item>
+                  <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+                </Menu.Item>
+                <Menu.Item>
+                  <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+                    <a>删除</a>
+                  </Popconfirm>
+                </Menu.Item>
+              </Menu>
+            }
+          >
+            <a>更多 <Icon type="down" /></a>
+          </Dropdown> */}
+        </Fragment>
+      ),
+    }];
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'receivables/_clear' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'receivables/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'receivables/del',
+        payload: {
+          uid: phoneno,
+          billno: item.billno,
+        },
+      });
+    }
+  }
+
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.changeReqParams({
+      page: pagination.current,
+    });
+  }
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'receivables/get' });
+  }
+
+  // 修改所需的请求参数后再获取数据
+  changeReqParams = (params) => {
+    this.props.dispatch({
+      type: 'receivables/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 查看详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'receivables/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  // 添加
+  gotoAdd = () => {
+    this.props.dispatch({
+      type: 'receivables/_showModal',
+      payload: { type: 'Add', item: {} },
+    });
+  }
+
+  // 打印
+  // gotoPrinter = () => {
+  //   this.props.dispatch({
+  //     type: 'receivables/_showModal',
+  //     payload: { type: 'Printer', item: {} },
+  //   });
+  // }
+
+  render() {
+    const {
+      receivables: { listData, reqParams },
+      getLoading,
+      delLoading,
+    } = this.props;
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={getLoading || delLoading}>
+            <Card
+              className={styles.listCard}
+              bordered={false}
+            >
+              <div className={styles.tableListOperator}>
+                {/* <Button icon="plus" type="primary" onClick={this.gotoAdd}>
+                  新建个人订单
+                </Button> */}
+              </div>
+              <Table
+                // className={styles.table}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                columns={this.columns}
+                dataSource={listData.list}
+                onChange={this.onPageSwitch}
+                pagination={{
+                  current: reqParams.page,
+                  defaultCurrent: 1,
+                  defaultPageSize: 15,
+                  total: listData.total,
+                }}
+              />
+            </Card>
+          </Spin>
+        </div>
+        {/* <Add /> */}
+        {/* <Edit /> */}
+        <Detail />
+      </PageHeaderLayout>
+    );
+  }
+}

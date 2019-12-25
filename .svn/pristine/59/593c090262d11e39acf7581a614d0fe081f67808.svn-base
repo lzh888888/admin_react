@@ -1,0 +1,104 @@
+@import "~antd/lib/style/themes/default.less";
+@import "../../utils/utils.less";
+
+.standardList {
+  :global {
+    .ant-card-head {
+      border-bottom: none;
+    }
+    .ant-card-head-title {
+      line-height: 32px;
+      padding: 24px 0;
+    }
+    .ant-card-extra {
+      padding: 24px 0;
+    }
+    .ant-list-pagination {
+      text-align: right;
+      margin-top: 24px;
+    }
+    .ant-avatar-lg {
+      width: 48px;
+      height: 48px;
+      line-height: 48px;
+    }
+  }
+  ul {
+    // border: 1px solid black;
+    list-style-type: none;
+    display: flex;
+    // justify-content: center;
+  }
+  li {
+    // border: 1px solid black;
+    float: left;
+    font-size: 18px;
+    width: 420px;
+  }
+  li .ListLeft {
+    // border: 1px solid black;
+    position: relative;
+    flex: 2;
+  }
+  li .ListRight {
+    // border: 1px solid black;
+    position: relative;
+    flex: 1;
+  }
+  // .extraContentSearch {
+  //   margin-left: 16px;
+  //   width: 272px;
+  // }
+}
+
+
+@media screen and (max-width: @screen-xs) {
+  .standardList {
+    :global {
+      .ant-list-item-content {
+        display: block;
+        flex: none;
+        width: 100%;
+      }
+      .ant-list-item-action {
+        margin-left: 0;
+      }
+    }
+    .listCard {
+      :global {
+        .ant-card-head-title {
+          overflow: visible;
+        }
+      }
+    }
+  }
+}
+
+// @media screen and (max-width: @screen-sm) {
+//   .standardList {
+//     .extraContentSearch {
+//       margin-left: 0;
+//       width: 100%;
+//     }
+//   }
+// }
+
+@media screen and (max-width: @screen-md) {
+  .listCard {
+    :global {
+      .ant-radio-group {
+        display: block;
+        margin-bottom: 8px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: @screen-lg) and (min-width: @screen-md) {
+}
+
+@media screen and (max-width: @screen-xl) {
+}
+
+@media screen and (max-width: 1400px) {
+}

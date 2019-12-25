@@ -1,0 +1,189 @@
+/* eslint-disable no-plusplus */
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Row, Col, Spin, Card, Button, Form, Select, message, Carousel } from 'antd';
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+import http from '../../../utils/http';
+
+import styles from './index.less';
+
+@connect(({
+  user,
+}) => ({
+  user,
+}))
+@Form.create()
+export default class extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoading: false,
+      images: [],
+      active: 1,
+    };
+  }
+
+  // 创建
+  onCreate = (e) => {
+    e.preventDefault();
+    const { form } = this.props;
+    form.validateFields((err, fieldsValue) => {
+      if (err) return;
+      this.setState({ isLoading: true });
+      const params = {
+        usercode: this.props.user.currentUser.billno,
+        section: `${fieldsValue.start},${fieldsValue.end}`,
+        suffix: fieldsValue.suffix,
+      };
+      http({
+        method: 'get',
+        api: 'get_qrcodelist',
+        timeout: 0,
+        params,
+      }).then((result) => {
+        const { status, msg, data } = result;
+        if (status === '0') {
+          this.setState({
+            images: data,
+            active: 1,
+          }, () => this.carouselRef.goTo(0, true));
+        } else {
+          message.warn(msg);
+        }
+      }).catch(() => {
+        //
+      }).then(() => {
+        this.setState({ isLoading: false });
+      })
+    });
+  }
+
+  onChange = (type) => {
+    if (type === 'prev') {
+      this.carouselRef.prev();
+      this.setState((state) => ({
+        active: state.active - 1,
+      }));
+    } else {
+      this.carouselRef.next();
+      this.setState((state) => ({
+        active: state.active + 1,
+      }));
+    }
+  }
+
+  onDownload = () => {
+    const { active, images } = this.state;
+    const src = images[active - 1];
+    const alink = document.createElement('a');
+    alink.href = src;
+    alink.download = `${active}.png`;
+    alink.click();
+  }
+
+  renderOperator = () => {
+    const {
+      form: { getFieldDecorator },
+    } = this.props;
+    return (
+      <Form onSubmit={this.onCreate} hideRequiredMark>
+        <Row gutter={3}>
+          <Col span={2}>
+            <Form.Item>
+              {getFieldDecorator('start', {
+                initialValue: "1",
+              })(
+                this.renderSelect()
+              )}
+            </Form.Item>
+          </Col>
+          <Col span={1} style={{ textAlign: 'center', marginTop: '10px' }}>到</Col>
+          <Col span={2}>
+            <Form.Item>
+              {getFieldDecorator('end', {
+                initialValue: "1",
+              })(
+                this.renderSelect()
+              )}
+            </Form.Item>
+          </Col>
+          <Col span={2}>
+            <Form.Item>
+              {getFieldDecorator('suffix', {
+                initialValue: "桌",
+              })(
+                <Select>
+                  <Select.Option value="桌">桌</Select.Option>
+                  <Select.Option value="台">台</Select.Option>
+                  <Select.Option value="房">房</Select.Option>
+                </Select>
+              )}
+            </Form.Item>
+          </Col>
+          <Col span={2} offset={1}>
+            <Button style={{ marginTop: '3px' }} type="primary" htmlType="submit">
+              生成二维码
+            </Button>
+          </Col>
+        </Row>
+      </Form>
+    );
+  }
+
+  renderSelect = () => {
+    const arr = [];
+    for (let index = 1; index <= 100; index++) {
+      arr.push(<Select.Option key={index} value={index}>{index}</Select.Option>);
+    }
+    return <Select>{arr}</Select>;
+  }
+  
+  renderCarousel = () => {
+    return (
+      <Carousel ref={r => this.carouselRef = r}>
+        {this.state.images.map((item, index) => (
+          <div key={index}>
+            <img src={item} alt="" width="100%" />
+          </div>
+        ))}
+      </Carousel>
+    );
+  }
+
+  render() {
+    const { active, images } = this.state;
+    const total = images.length;
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={this.state.isLoading}>
+            <Card bordered={false}>
+              {this.renderOperator()}
+              {this.renderCarousel()}
+              {total > 0 && (
+                <div
+                  style={{
+                    marginTop: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ marginRight: '10px' }}>第{active}张，共{total}张</div>
+                  <Button type="primary" disabled={active === 1} onClick={() => this.onChange('prev')}>
+                    上一张
+                  </Button>
+                  <Button style={{ marginLeft: '10px' }} type="primary" disabled={active === total} onClick={() => this.onChange('next')}>
+                    下一张
+                  </Button>
+                  <Button style={{ marginLeft: '30px' }} type="primary" icon="download" onClick={this.onDownload}>
+                    下载
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </Spin>
+        </div>
+      </PageHeaderLayout>
+    );
+  }
+}

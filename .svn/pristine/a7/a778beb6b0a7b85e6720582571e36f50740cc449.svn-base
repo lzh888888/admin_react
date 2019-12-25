@@ -1,0 +1,247 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Select, InputNumber, Radio } from 'antd';
+
+// import config from '../../../common/config';
+
+const Option = Select.Option;
+const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  financeRenew,
+  loading,
+}) => ({
+  user,
+  financeRenew,
+  loading: !!loading.effects['financeRenew/add'],
+}))
+@Form.create()
+export default class extends Component {
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'financeRenew/_hideModal',
+      payload: { type: 'Add' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        flat: '0',
+        uid: user.currentUser.phoneno,
+        billno: '',
+        ...values,
+        area: values.area === '暂无' ? '' : values.area || '',
+        print: values.print === '暂无' ? '' : values.print || '',
+      };
+      dispatch({ type: 'financeRenew/add', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      financeRenew: { showModalAdd },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+    const FormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+    };
+
+    return (
+      <Modal
+        title="新增商家订单"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalAdd}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="订单编号">
+            {getFieldDecorator('roomname0', {
+              initialValue: '',
+              rules: [{ required: true, message: '订单编号' }],
+            })(
+              <Input placeholder="请输入订单编号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="订单日期">
+            {getFieldDecorator('area', {
+              initialValue: '',
+              rules: [{ required: true, message: '订单日期' }],
+            })(
+              <Input placeholder="请输入订单日期" />
+              // <Select placeholder="房间/台桌在酒店的区域">
+              //   {config.roomAreaMaps.map((v, k) => (
+              //     <Option key={k} value={v}>{v}</Option>
+              //   ))}
+              // </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="单价">
+            {getFieldDecorator('roomtype', {
+              // initialValue: '0',
+              initialValue: '',
+              rules: [{ required: true, message: '单价' }],
+            })(
+              // <Select>
+              //   <Option value="0">台桌</Option>
+              //   <Option value="1">房间</Option>
+              // </Select>
+              <InputNumber min={0} style={{ width: '40%' }} placeholder="请输入单价" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="许可人数">
+            {getFieldDecorator('print', {
+              initialValue: '',
+              rules: [{ required: true, message: '许可人数' }],
+            })(
+              <InputNumber min={0} style={{ width: '50%' }} placeholder="请输入许可人数" />
+            )}
+          </Form.Item>
+          {/* <Form.Item {...basicFormProps} label="打印机">
+            {getFieldDecorator('print', {
+              // initialValue: '',
+            })(
+              <Select placeholder="选择打印机">
+                {config.roomPrintMaps.map((v, k) => (
+                  <Option key={k} value={v}>{v}</Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item> */}
+          {/* <Form.Item {...basicFormProps} label="序号">
+            {getFieldDecorator('sortno', {
+              initialValue: '',
+            })(
+              <InputNumber min={0} placeholder="序号" />
+            )}
+          </Form.Item> */}
+          <Form.Item {...basicFormProps} label="续费时长">
+            {getFieldDecorator('sortno', {
+              initialValue: '',
+              rules: [{ required: true, message: '续费时长' }],
+            })(
+              <Input placeholder="请输入续费时长" />
+            )}
+          </Form.Item>
+          {/* <Form.Item {...basicFormProps} label="排队的桌类型">
+            {getFieldDecorator('seats', {
+              initialValue: '',
+            })(
+              <Input placeholder="例：普通饭桌、6人桌" />
+            )}
+          </Form.Item> */}
+          {/* <Form.Item {...basicFormProps} label="房间简介">
+            {getFieldDecorator('remark', {
+              initialValue: '',
+            })(
+              <Input.TextArea placeholder="房间简介" autosize={{ minRows: 4, maxRows: 6 }} />
+            )}
+          </Form.Item> */}
+          <Form.Item {...basicFormProps} label="合计">
+            {getFieldDecorator('seats', {
+              initialValue: '',
+              rules: [{ required: true, message: '合计' }],
+            })(
+              <InputNumber min={0} style={{ width: '40%' }} placeholder="请输入合计" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="付款日期">
+            {getFieldDecorator('remark', {
+              initialValue: '',
+              rules: [{ required: true, message: '付款日期' }],
+            })(
+              <Input placeholder="请输入付款日期" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="生效日期">
+            {getFieldDecorator('roomname01', {
+              initialValue: '',
+              rules: [{ required: true, message: '生效日期' }],
+            })(
+              <Input placeholder="请输入生效日期" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="结束日期">
+            {getFieldDecorator('roomname02', {
+              initialValue: '',
+              rules: [{ required: true, message: '结束日期' }],
+            })(
+              <Input placeholder="请输入结束日期" />
+            )}
+          </Form.Item>
+          <Form.Item {...FormProps} label="是否发票">
+            {getFieldDecorator('roomname04', {
+              initialValue: '0',
+              rules: [{ required: true, message: '是否发票' }],
+            })(
+              <RadioGroup>
+                <Radio value="0">是</Radio>
+                <Radio value="1">否</Radio>
+              </RadioGroup>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="支付方式">
+            {getFieldDecorator('seats0', {
+              initialValue: '0',
+              rules: [{ required: true, message: '支付方式' }],
+            })(
+              <Select>
+                <Option value="0">现金</Option>
+                <Option value="1">微信支付</Option>
+                <Option value="2">支付宝支付</Option>
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="交易编号">
+            {getFieldDecorator('roomname03', {
+              initialValue: '',
+              rules: [{ required: true, message: '交易编号' }],
+            })(
+              <Input placeholder="请输入交易编号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="状态">
+            {getFieldDecorator('roomname', {
+              initialValue: '0',
+              rules: [{ required: true, message: '状态' }],
+            })(
+              <Select>
+                <Option value="0">续费成功</Option>
+                <Option value="1">续费失败</Option>
+              </Select>
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

@@ -1,0 +1,63 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ refund }) => ({
+  refund,
+}))((props) => {
+  const {
+    dispatch,
+    refund: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => {};
+
+  const handCancel = () => {
+    dispatch({
+      type: 'refund/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const items = [
+    { label: '商户订单号', content: activeItem.billno },
+    { label: '交易日期', content: activeItem.billdate },
+    { label: '订单金额', content: activeItem.payval },
+    { label: '应付金额', content: activeItem.cash_fee },
+    { label: '货币种类', content: activeItem.fee_type },
+    { label: '交易状态', content: activeItem.result_code },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

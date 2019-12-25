@@ -1,0 +1,251 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Select, InputNumber } from 'antd';
+// import ChooseImage from '../../../cps/ChooseImage';
+import config from '../../../common/config';
+
+const Option = Select.Option;
+// const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  dishes,
+  loading,
+}) => ({
+  user,
+  dishes,
+  loading: !!loading.effects['dishes/addfoods'],
+}))
+@Form.create()
+export default class extends Component {
+  // constructor(props) {
+  //   super(props);
+  //   this.images = {};
+  // }
+
+  // 获取菜品类型数据
+  getType = () => {
+    this.props.dispatch({ type: 'dishes/gettype' });
+  }
+
+
+  // 弹出框关闭后要清空
+  // handAfterClose = () => {
+  //   this.images = {};
+  // }
+
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'dishes/_hideModal',
+      payload: { type: 'Addfoods' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+      dishes: { typeData },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const foodType = typeData.list[values.foodTypeIndex];
+      const data = {
+        // image: '',
+        // image1: '',
+        // image2: '',
+        // image3: '',
+        uid: user.currentUser.phoneno,
+        typename: foodType.typename,
+        typeno: foodType.id,
+        tno: foodType.billno,
+        foodname: '',
+        retailprice: '',
+        volume: '',
+        price: '',
+        unit: '',
+        sellqty: '',
+        rating: '',
+        feature: '',
+        print: '',
+        memo: '',
+        onsale: '',
+        tag: 'add',
+        ...values,
+        // ...this.images,
+      };
+      // if (!data.image) {
+      //   message.error('请至少选择上传第一张图片！');
+      //   return;
+      // }
+      dispatch({ type: 'dishes/addfoods', payload: data });
+    });
+  }
+
+  // renderAvatar = () => {
+  //   return (
+  //     <div className="avatar-container">
+  //       <ChooseImage
+  //         onClear={() => this.images.image = ''}
+  //         onChange={base64 => this.images.image = base64}
+  //       />
+  //       <ChooseImage
+  //         onClear={() => this.images.image1 = ''}
+  //         onChange={base64 => this.images.image1 = base64}
+  //       />
+  //       <ChooseImage
+  //         onClear={() => this.images.image2 = ''}
+  //         onChange={base64 => this.images.image2 = base64}
+  //       />
+  //       <ChooseImage
+  //         onClear={() => this.images.image3 = ''}
+  //         onChange={base64 => this.images.image3 = base64}
+  //       />
+  //     </div>
+  //   );
+  // }
+
+  render() {
+    const {
+      loading,
+      dishes: { showModalAddfoods, typeData },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="新增菜品"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalAddfoods}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          {/* <Form.Item {...basicFormProps} label="图片">
+            {this.renderAvatar()}
+          </Form.Item> */}
+          <Form.Item {...basicFormProps} label="菜品名称">
+            {getFieldDecorator('foodname', {
+              initialValue: '',
+              rules: [{ required: true, message: '菜品名称' }],
+            })(
+              <Input placeholder="请输入菜品名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="菜品类型">
+            {getFieldDecorator('foodTypeIndex', {
+              rules: [{ required: true, message: '菜品类型' }],
+            })(
+              <Select placeholder="请选择菜品类型">
+                {typeData.list.map((v, k) => (
+                  <Option key={k} value={k}>
+                    {v.typename}
+                  </Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="菜品份量">
+            {getFieldDecorator('volume', {
+              // initialValue: '',
+              rules: [{ required: true, message: '菜品份量' }],
+            })(
+              <Select placeholder="请选择菜品份量" >
+                {config.foodsVolumeMaps.map((v, k) => (
+                  <Option key={k} value={k}>{v}</Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="现价">
+            {getFieldDecorator('price', {
+              // initialValue: '0',
+              initialValue: '',
+              rules: [{ required: true, message: '现价' }],
+            })(
+              <InputNumber min={1} style={{ width: '40%' }} placeholder="请输入现价" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="单位">
+            {getFieldDecorator('unit', {
+              initialValue: '',
+              rules: [{ required: true, message: '单位' }],
+            })(
+              <Input placeholder="请输入单位" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="零售价">
+            {getFieldDecorator('retailprice', {
+              initialValue: '',
+              rules: [{ required: true, message: '零售价' }],
+            })(
+              <InputNumber min={1} style={{ width: '40%' }} placeholder="请输入零售价" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="特色">
+            {getFieldDecorator('feature', {
+              initialValue: '',
+              rules: [{ required: false, message: '特色' }],
+            })(
+              <Input placeholder="请输入特色" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印机">
+            {getFieldDecorator('print', {
+              rules: [{ required: true, message: '打印机' }],
+            })(
+              <Select placeholder="选择打印机">
+                {config.foodsPrintMaps.map((v, k) => (
+                  <Option key={k} value={v}>{v}</Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="日限量">
+            {getFieldDecorator('sellqty', {
+              initialValue: '',
+              rules: [{ required: true, message: '日限量' }],
+            })(
+              <InputNumber min={1} style={{ width: '40%' }} placeholder="请输入日限量" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="是否在售">
+            {getFieldDecorator('onsale', {
+              initialValue: '1',
+              rules: [{ required: true, message: '是否在售' }],
+            })(
+              <Select>
+                <Option value="0">无售卖</Option>
+                <Option value="1">在售</Option>
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="详细描述">
+            {getFieldDecorator('memo', {
+              initialValue: '',
+              rules: [{ required: false, message: '详细描述' }],
+            })(
+              <Input.TextArea placeholder="详细描述" autosize={{ minRows: 4, maxRows: 6 }} />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

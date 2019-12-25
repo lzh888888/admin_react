@@ -1,0 +1,219 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Button, Spin, Table, Card, Divider, Popconfirm } from 'antd';
+
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+import Add from './Add';
+// import Edit from './Edit';
+import Detail from './Detail';
+import styles from './index.less';
+
+@connect(({
+  user,
+  cloudPrint,
+  loading,
+}) => ({
+  user,
+  cloudPrint,
+  getLoading: !!loading.effects['cloudPrint/get'],
+  delLoading: !!loading.effects['cloudPrint/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '打印机名称',
+      dataIndex: 'printname',
+      width: 180,
+    }, {
+      title: '打印机品牌',
+      dataIndex: 'brand',
+      width: 180,
+    }, {
+      title: '打印机IP地址、编号',
+      dataIndex: 'printer',
+      width: 180,
+    }, {
+      title: '打印模式',
+      dataIndex: 'model',
+      width: 180,
+    }, {
+      title: '打印方式',
+      dataIndex: 'modelkey',
+      width: 180,
+      render: (value) => {
+        if (value === '0') {
+          return (
+            <span>WiFi打印</span>
+          );
+        } else if (value === '1') {
+          return (
+            <span>蓝牙打印</span>
+          );
+        } else if (value === '2') {
+          return (
+            <span>云打印</span>
+          );
+        }
+      },
+    }, {
+      title: '打印页面大小',
+      dataIndex: 'pagesize',
+      width: 180,
+    }, {
+      title: '状态',
+      dataIndex: 'statu',
+      width: 180,
+      render: value => {
+        if (value === '-1') {
+          return (
+            <span>删除</span>
+          );
+        } else if (value === '0') {
+          return (
+            <span>正常</span>
+          );
+        } else if (value === '1') {
+          return (
+            <span>关闭</span>
+          );
+        }
+      },
+    }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 180,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+            <a>删除</a>
+          </Popconfirm>
+        </Fragment>
+      ),
+    }];
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'cloudPrint/_clear' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'cloudPrint/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'cloudPrint/del',
+        payload: {
+          admin: phoneno,
+          printname: item.printname,
+          brand: item.brand,
+          sn: item.printer,
+        },
+      });
+    }
+  }
+
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.changeReqParams({
+      page: pagination.current,
+    });
+  }
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'cloudPrint/get' });
+  }
+
+  // 修改所需的请求参数后再获取数据
+  changeReqParams = (params) => {
+    this.props.dispatch({
+      type: 'cloudPrint/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 查看详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'cloudPrint/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  // 添加
+  gotoAdd = () => {
+    this.props.dispatch({
+      type: 'cloudPrint/_showModal',
+      payload: { type: 'Add', item: {} },
+    });
+  }
+
+  render() {
+    const {
+      cloudPrint: { listData, reqParams },
+      getLoading,
+      delLoading,
+    } = this.props;
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={getLoading || delLoading}>
+            <Card
+              className={styles.listCard}
+              bordered={false}
+            >
+              <div className={styles.tableListOperator}>
+                <Button icon="plus" type="primary" onClick={this.gotoAdd}>
+                  添加打印机
+                </Button>
+                {/* <Button icon="pay-circle-o" type="primary" onClick={this.gotoPrinter}>
+                  续费
+                </Button> */}
+              </div>
+              <Table
+                // className={styles.table}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                columns={this.columns}
+                dataSource={listData.list}
+                onChange={this.onPageSwitch}
+                pagination={{
+                  current: reqParams.page,
+                  defaultCurrent: 1,
+                  defaultPageSize: 15,
+                  total: listData.total,
+                }}
+              />
+            </Card>
+          </Spin>
+        </div>
+        <Add />
+        {/* <Edit /> */}
+        <Detail />
+      </PageHeaderLayout>
+    );
+  }
+}

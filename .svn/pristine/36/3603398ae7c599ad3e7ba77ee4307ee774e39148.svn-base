@@ -1,0 +1,168 @@
+import { isUrl } from '../utils/utils';
+
+const menuData = [{
+  name: '主页',
+  icon: 'home',
+  path: 'home',
+}, {
+  name: '运营情况',
+  icon: 'area-chart',
+  path: 'operations',
+  children: [{
+    name:'运营查询',
+    path:'operate',
+  }, {
+    name:'月度统计',
+    path:'month',
+  }, {
+    name:'销量分析',
+    path:'sales',
+  }, {
+    name:'点餐员分析',
+    path:'caterer',
+  }],
+}, {
+  name: '系统设置',
+  icon: 'setting',
+  path: 'system',
+  children: [{
+    name: '桌号设置',
+    path: 'rooms',
+  }, {
+    name: '菜品设置',
+    path: 'dishes',
+  }, {
+    name: '管理点餐员',
+    path: 'manage',
+  }, {
+    name: '云打印机设置',
+    path: 'printer',
+  }, {
+    name: '支付设置',
+    path: 'pay',
+  }, {
+    name: '下载二维码',
+    path: 'qrcode',
+  }],
+}, {
+  name: '会员管理',
+  icon: 'team',
+  path: 'member',
+  children: [{
+    name: '会员资料',
+    path: 'vip',
+  }, {
+    name: '消费记录',
+    path: 'consumption',
+  }, {
+    name: '充值记录',
+    path: 'recharge',
+  }, {
+    name: '积分记录',
+    path: 'integral',
+  }],
+}, {
+  name: '财务管理',
+  icon: 'calculator',
+  path: 'finance',
+  children: [{
+    name:'续费记录',
+    path:'renew',
+  }, {
+    name:'网络收款记录',
+    path:'receivables',
+  }, {
+    name:'网络退款记录',
+    path:'refund',
+  }, {
+    name:'发票申请',
+    path:'invoice',
+  }],
+}, {
+  name: '代理公司',
+  icon: 'table',
+  path: 'agent',
+  children: [{
+    name:'下属代理商',
+    path:'subunit',
+  }, {
+    name:'我的客户',
+    path:'customer',
+  }, {
+    name: '合同管理',
+    path: 'contract',
+  }, {
+    name: '新用户挖掘',
+    path: 'mining',
+  }],
+},{
+  name: '原料管理',
+  icon: 'stock',
+  path: 'materiamanage',
+  children: [{
+    name: '库存状态',
+    path: 'stock',
+  }],
+},{
+  name: '餐厅信息设置',
+  icon: 'shop',
+  path: 'resturant',
+}, {
+  name: '用户信息',
+  icon: 'user',
+  path: 'userinfo',
+//   name: '结果页',
+//   icon: 'check-circle-o',
+//   path: 'result',
+//   hideInMenu: true,
+//   children: [{
+//     name: '成功',
+//     path: 'success',
+//   }, {
+//     name: '失败',
+//     path: 'fail',
+//   }],
+// }, {
+//   name: '产品介绍',
+//   icon: 'book',
+//   path: 'https://www.kassor.cn/',
+//   target: '_blank',
+//   hideInMenu: true,
+//   // authority: 'admin', // 配置准入权限
+// }, {
+//   name: '账户',
+//   icon: 'user',
+//   path: 'user',
+//   hideInMenu: true,
+//   children: [{
+//     name: '登录',
+//     path: 'login',
+//   }, {
+//     name: '注册',
+//     path: 'register',
+//   }, {
+//     name: '注册结果',
+//     path: 'register-result',
+//   }],
+}];
+
+function formatter(data, parentPath = '/', parentAuthority) {
+  return data.map(item => {
+    let { path } = item;
+    if (!isUrl(path)) {
+      path = parentPath + item.path;
+    }
+    const result = {
+      ...item,
+      path,
+      authority: item.authority || parentAuthority,
+    };
+    if (item.children) {
+      result.children = formatter(item.children, `${parentPath}${item.path}/`, item.authority);
+    }
+    return result;
+  });
+}
+
+export const getMenuData = () => formatter(menuData);
+

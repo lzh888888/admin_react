@@ -1,0 +1,22 @@
+/**
+ * 个人
+ */
+
+let host;
+const hostID = 0;
+switch (hostID) {
+  // 公司
+  case 0:
+    host = 'http://192.168.3.18:7071/V7.0/xiaoerbg.php?';
+    break;
+  // 宿舍
+  case 1:
+    host = 'http://192.168.0.102:7071/foodmenu/xiaoerbg.php?';
+    break;
+  // 其它
+  default:
+    host = 'https://json.kassor.cn/foodmenu/xiaoerbg.php?';
+}
+
+export default { host };
+

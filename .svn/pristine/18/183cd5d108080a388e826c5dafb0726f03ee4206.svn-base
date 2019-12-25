@@ -1,0 +1,9 @@
+@import '~antd/lib/style/themes/default.less';
+
+.tableList {
+  :global {
+    .ant-spin-nested-loading > div > .ant-spin {
+      max-height: 100%;
+    }
+  }
+}

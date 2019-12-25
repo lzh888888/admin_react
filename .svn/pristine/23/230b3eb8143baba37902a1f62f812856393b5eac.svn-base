@@ -1,0 +1,106 @@
+import { message } from 'antd';
+import http from '../utils/http';
+
+// 获取
+async function __get(params) {
+  return http({ method: 'get', api: 'getcompanyinfo', params });
+}
+async function __set(data) {
+  return http({ method: 'post', api: 'setcompanyinfo', data });
+}
+// async function __del(params) {
+//   return http({ method: 'get', api: 'delroom', params });
+// }
+
+const initState = {
+
+  activeItem: {},
+
+
+  // 请求参数
+  reqParams: {
+    uid: '',
+  },
+};
+
+export default {
+  namespace: 'resturant',
+
+  state: initState,
+
+  effects: {
+    *get(_, { call, put, select }) {
+      try {
+        const { user, resturant } = yield select(state => state);
+        const params = { ...resturant.reqParams, uid: user.currentUser.phoneno };
+
+        const { status, msg, data } = yield call(__get, params);
+        if (status === '0') {
+          yield put({
+            type: '_appendListData',
+            payload: data.list,
+          });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    *set({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__set, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({
+            type: '_hideModal',
+            payload: { type: 'Set' },
+          });
+          yield put({ type: 'get' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+  },
+
+  reducers: {
+    _appendListData(state, action) {
+      return {
+        ...state,
+        activeItem: action.payload,
+      };
+    },
+
+    // 修改请求参数
+    _changeReqParams(state, action) {
+      return {
+        ...state,
+        reqParams: {
+          ...state.reqParams,
+          ...action.payload,
+        },
+      };
+    },
+
+    _showModal(state, { payload }) {
+      return {
+        ...state,
+        activeItem: payload.item || {},
+        [`showModal${payload.type}`]: true,
+      };
+    },
+
+    _hideModal(state, { payload }) {
+      return { ...state, [`showModal${payload.type}`]: false };
+    },
+
+    // 该页面注销后要清除当前的状态，防止下次进来还是之前的数据
+    _clear() {
+      return initState;
+    },
+  },
+};

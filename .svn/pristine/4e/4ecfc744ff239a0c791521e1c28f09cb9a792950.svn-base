@@ -1,0 +1,64 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+import ChooseImage from '../../cps/ChooseImage';
+
+export default connect(({ approve }) => ({
+  approve,
+}))((props) => {
+  const {
+    dispatch,
+    approve: { showModalDetail, activeItem: item },
+  } = props;
+
+  const handleOk = () => { };
+
+  const handCancel = () => {
+    dispatch({
+      type: 'approve/hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const renderAvatar = () => {
+    const { image1, image2, image3 } = item;
+    return (
+      <div className="avatar-container">
+        {!!image1 && <ChooseImage isClearIcon={false} source={image1} />}
+        {!!image2 && <ChooseImage isClearIcon={false} source={image2} />}
+        {!!image3 && <ChooseImage isClearIcon={false} source={image3} />}
+      </div>
+    );
+  };
+
+  return (
+    <Modal
+      footer={null}
+      title={item.waresname}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        <p>提交者：{item.username}</p>
+        <p>提交日期：{item.billdate}</p>
+        <p>名称：{item.waresname}</p>
+        <p>别称：{item.nickname}</p>
+        <p>品牌：{item.brand}</p>
+        <p>来源：{item.origin}</p>
+        <p>单位：{item.unit}</p>
+        <p>位置：{item.waddress}</p>
+        <p>物料码：{item.waresbno}</p>
+        <p>型号1：{item.model}</p>
+        <p>型号2：{item.model2}</p>
+        <p>型号3：{item.model3}</p>
+        {item.ptype === '0' && <p>批发价：{item.price}</p>}
+        {item.ptype2 === '0' && <p>采购价：{item.price2}</p>}
+        {item.ptype3 === '0' && <p>市场价：{item.price3}</p>}
+        <p>描述：{item.description}</p>
+        {renderAvatar()}
+      </div>
+    </Modal>
+  );
+});

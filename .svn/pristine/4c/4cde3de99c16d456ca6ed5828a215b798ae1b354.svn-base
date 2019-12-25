@@ -1,0 +1,138 @@
+import { message } from 'antd';
+import http from '../utils/http';
+
+// 获取
+async function _get(params) {
+  return http({ method: 'get', api: 'getnotice', params });
+}
+async function _handApprove(params) {
+  return http({ method: 'get', api: 'approv', params });
+}
+async function _handApproveChange(params) {
+  return http({ method: 'get', api: 'approvchange', params });
+}
+
+const initState = {
+  listData: {
+    list: [],
+    total: 0,
+  },
+
+  // 选中项，编辑和详情需要获取项数据
+  activeItem: {},
+
+  // 弹出框的打开和关闭
+  showModalDetail: false,
+
+  // 请求参数
+  urlP: {
+    page: 1,
+    keyword: '',
+  },
+};
+
+export default {
+  namespace: 'approve',
+
+  state: initState,
+
+  effects: {
+    *get(_, { call, put, select }) {
+      try {
+        const { user, approve } = yield select(state => state);
+        const params = { ...approve.urlP, uid: user.currentUser.userno };
+
+        const { success, msg, data } = yield call(_get, params);
+        if (success === '1') {
+          yield put({
+            type: 'appendListData',
+            payload: { list: data.list, total: Number(data.total) },
+          });
+        } else {
+          message.warn(msg);
+          yield put({
+            type: 'appendListData',
+            payload: { list: [], total: 0 },
+          });
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    // 审批 - 新增&删除类型
+    *handApprove({ payload }, { put, call }) {
+      try {
+        const { success, msg } = yield call(_handApprove, payload);
+        if (success === '1') {
+          message.success(msg);
+          yield put({ type: 'get' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    // 审批 - 更改类型
+    *handApproveChange({ payload }, { put, call }) {
+      try {
+        const { success, msg } = yield call(_handApproveChange, payload);
+        if (success === '1') {
+          message.success(msg);
+          yield put({ type: 'get' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+  },
+
+  reducers: {
+    appendListData(state, action) {
+      return {
+        ...state,
+        listData: action.payload,
+      };
+    },
+
+    // 修改请求参数
+    reUrlP(state, action) {
+      return {
+        ...state,
+        urlP: {
+          ...state.urlP,
+          ...action.payload,
+        },
+      };
+    },
+
+    showModal(state, { payload }) {
+      // 编辑和详情才需要项数据
+      if (payload.type === 'Edit' || payload.type === 'Detail') {
+        return {
+          ...state,
+          activeItem: payload.item || {},
+          [`showModal${payload.type}`]: true,
+        };
+      } else {
+        return {
+          ...state,
+          [`showModal${payload.type}`]: true,
+        };
+      }
+    },
+
+    hideModal(state, { payload }) {
+      return { ...state, [`showModal${payload.type}`]: false };
+    },
+
+    // 该页面注销后要清除当前的状态，防止下次进来还是之前的数据
+    clear() {
+      return initState;
+    },
+  },
+};

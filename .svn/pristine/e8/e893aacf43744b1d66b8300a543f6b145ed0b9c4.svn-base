@@ -1,0 +1,204 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Radio, InputNumber } from 'antd';
+
+import ChooseImage from '../../../cps/ChooseImage';
+
+@connect(({
+  user,
+  customer,
+  loading,
+}) => ({
+  user,
+  customer,
+  loading: !!loading.effects['customer/edit'],
+}))
+@Form.create()
+export default class extends Component {
+  constructor(props) {
+    super(props);
+    this.images = {};
+  }
+
+  // 弹出框关闭后要清空
+  handAfterClose = () => {
+    this.images = {};
+  }
+
+  handCancel = () => {
+    this.props.dispatch({
+      type: 'customer/_hideModal',
+      payload: { type: 'Edit' },
+    });
+  }
+
+  // 提交
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      customer: {activeItem},
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        image: activeItem.image,
+        image1: activeItem.image1,
+        image2: activeItem.image2,
+        image3: activeItem.image3,
+        billno: activeItem.billno,
+        username: activeItem.username,
+        phoneno: activeItem.phoneno,
+        title: activeItem.title,
+        tel: activeItem.tel,
+        linkman: activeItem.linkman,
+        saler: user.currentUser.phoneno,
+        address: activeItem.address,
+        license: activeItem.license,
+        amount: activeItem.amount,
+        paid: activeItem.paid,
+        allow: activeItem.allow,
+        admin: user.currentUser.phoneno,
+        flat: '1',
+        ...this.images,
+        ...values,
+      };
+      // if (!data.image1) {
+      //   message.error('请至少选择上传第一张图片！');
+      //   return;
+      // }
+      dispatch({ type: 'customer/edit', payload: data });
+    });
+  }
+
+  renderAvatar = () => {
+    const { image, image2, image3 } = this.props.customer.activeItem;
+    return (
+      <div className="avatar-container">
+        <ChooseImage
+          source={image} // 显示缩略图
+          onClear={() => this.images.image1 = ''}
+          onChange={base64 => this.images.image1 = base64}
+        />
+        <ChooseImage
+          source={image2}
+          onClear={() => this.images.image2 = ''}
+          onChange={base64 => this.images.image2 = base64}
+        />
+        <ChooseImage
+          source={image3}
+          onClear={() => this.images.image3 = ''}
+          onChange={base64 => this.images.image3 = base64}
+        />
+      </div>
+    );
+  }
+
+  render() {
+    const {
+      loading,
+      customer: { showModalEdit, activeItem },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="编辑客户"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalEdit}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="客户名称">
+            {getFieldDecorator('username', {
+              initialValue: activeItem.username,
+              rules: [{ required: true, message: '请输入客户名称' }],
+            })(
+              <Input placeholder="客户名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="公司名称">
+            {getFieldDecorator('title', {
+              initialValue: activeItem.title,
+            })(
+              <Input placeholder="公司名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系人">
+            {getFieldDecorator('linkman', {
+              initialValue: activeItem.linkman,
+            })(
+              <Input placeholder="联系人" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系电话">
+            {getFieldDecorator('tel', {
+              initialValue: activeItem.tel,
+            })(
+              <Input placeholder="联系电话" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系地址">
+            {getFieldDecorator('address', {
+              initialValue: activeItem.address,
+            })(
+              <Input placeholder="联系地址" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="许可证">
+            {getFieldDecorator('license', {
+              initialValue: activeItem.license,
+            })(
+              <Input placeholder="许可证" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="合同金额">
+            {getFieldDecorator('amount', {
+              initialValue: activeItem.amount,
+            })(
+              <InputNumber min={1} step={0.1} placeholder="合同金额"  />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="已付合同金额">
+            {getFieldDecorator('paid', {
+              initialValue: activeItem.paid,
+            })(
+              <InputNumber min={1} style={{width: 120}} step={0.1} placeholder="已付合同金额"  />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="是否允许使用" hasFeedback={false}>
+            {getFieldDecorator('allow', {
+              initialValue: activeItem.allow,
+              rules: [{ required: true, message: '请选择是或否' }],
+            })(
+              <Radio.Group>
+                <Radio value="1">是</Radio>
+                <Radio value="0">否</Radio>
+              </Radio.Group>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="图片">
+            {this.renderAvatar()}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

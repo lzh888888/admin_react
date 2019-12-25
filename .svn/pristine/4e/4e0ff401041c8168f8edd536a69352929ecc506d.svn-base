@@ -1,0 +1,95 @@
+import { message } from 'antd';
+import http from '../utils/http';
+
+// 获取
+async function _get(params) {
+  return http({ method: 'get', api: 'getcustomer', params });
+}
+
+const initState = {
+  listData: {
+    list: [],
+    total: 0,
+  },
+
+  // 弹出框的打开和关闭
+  modalVisible: false,
+
+  // 请求参数
+  urlP: {
+    // page: 1,
+    uid: '',
+    keyword: '',
+    // ispaging: '0',
+  },
+};
+
+export default {
+  namespace: 'selectCustomer',
+
+  state: initState,
+
+  effects: {
+    *get(_, { call, put, select }) {
+      try {
+        const { user, selectCustomer } = yield select(state => state);
+        const params = { ...selectCustomer.urlP, uid: user.currentUser.phoneno };
+
+        const { success, msg, data } = yield call(_get, params);
+        if (success === '0') {
+          yield put({
+            type: 'appendListData',
+            payload: { list: data.list, total: Number(data.total) },
+          });
+        } else {
+          message.warn(msg);
+          yield put({
+            type: 'appendListData',
+            payload: { list: [], total: 0 },
+          });
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    *modalVisible({ payload }, { put }) {
+      const { show } = payload;
+      yield put({ type: '_modalVisible', payload: { show } });
+      if (show) {
+        yield put({ type: 'get' });
+      } else {
+        yield put({ type: 'clear' });
+      }
+    },
+  },
+
+  reducers: {
+    appendListData(state, action) {
+      return {
+        ...state,
+        listData: action.payload,
+      };
+    },
+
+    // 修改请求参数
+    reUrlP(state, action) {
+      return {
+        ...state,
+        urlP: {
+          ...state.urlP,
+          ...action.payload,
+        },
+      };
+    },
+
+    _modalVisible(state, { payload }) {
+      return { ...state, modalVisible: payload.show };
+    },
+
+    // 该页面注销后要清除当前的状态，防止下次进来还是之前的数据
+    clear() {
+      return initState;
+    },
+  },
+};

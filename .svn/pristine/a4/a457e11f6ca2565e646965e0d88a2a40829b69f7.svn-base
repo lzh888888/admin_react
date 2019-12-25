@@ -1,0 +1,94 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input } from 'antd';
+
+// import config from '../../../common/config';
+
+// const Option = Select.Option;
+// const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  dishes,
+  loading,
+}) => ({
+  user,
+  dishes,
+  loading: !!loading.effects['dishes/edittype'],
+}))
+@Form.create()
+export default class extends Component {
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'dishes/_hideModal',
+      payload: { type: 'Edittype' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+      dishes: { activeItem },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        sid: activeItem.id,
+        uid: user.currentUser.phoneno,
+        typename: activeItem.typename || '',
+        sortno: activeItem.sortno || '',
+        icon: activeItem.icon || '0',
+        freq: activeItem.freq || '0',
+        tag: 'edit',
+        ...values,
+      };
+      dispatch({ type: 'dishes/edittype', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      dishes: { showModalEdittype, activeItem },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="修改菜品类型"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalEdittype}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="分类名称">
+            {getFieldDecorator('typename', {
+              initialValue: activeItem.typename,
+              rules: [{ required: true, message: '分类名称' }],
+            })(
+              <Input placeholder="请输入分类名称" />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

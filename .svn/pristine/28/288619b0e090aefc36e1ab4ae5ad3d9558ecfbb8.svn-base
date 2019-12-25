@@ -1,0 +1,94 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+import ChooseImage from '../../../cps/ChooseImage';
+
+export default connect(({ contract }) => ({
+  contract,
+}))((props) => {
+  const {
+    dispatch,
+    contract: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => { };
+
+  const handCancel = () => {
+    dispatch({
+      type: 'contract/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const renderAvatar = () => {
+    const { image1, image2, image3 } = activeItem;
+    return (
+      <div className="avatar-container">
+        {!!image1 && <ChooseImage isClearIcon={false} source={image1} />}
+        {!!image2 && <ChooseImage isClearIcon={false} source={image2} />}
+        {!!image3 && <ChooseImage isClearIcon={false} source={image3} />}
+      </div>
+    );
+  };
+
+  const renderAstatus = () => {
+    const { astatus } = activeItem;
+    const value = astatus;
+    if (value === '0') {
+      return <span>暂存</span>;
+    } else if (value === '1') {
+      return <span>审核通过</span>;
+    } else if (value === '-1') {
+      return <span>删除状态</span>;
+    }
+  };
+
+  const items = [
+    { label: '合同名称', content: activeItem.title },
+    { label: '合同编号', content: activeItem.contrano },
+    { label: '合同日期', content: activeItem.contradate },
+    { label: '合同金额', content: activeItem.amount },
+    { label: '已付金额', content: activeItem.paid },
+    { label: '客户名称', content: activeItem.customername },
+    { label: '联系人', content: activeItem.linkman },
+    { label: '联系电话', content: activeItem.tel },
+    { label: '联系地址', content: activeItem.address },
+    { label: '合同描述', content: activeItem.introduction },
+    { label: '订单状态', content: renderAstatus() },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+        {renderAvatar()}
+      </div>
+    </Modal>
+  );
+});

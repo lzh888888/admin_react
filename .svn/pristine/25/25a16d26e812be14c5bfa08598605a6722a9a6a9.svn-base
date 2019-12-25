@@ -1,0 +1,158 @@
+/**
+ * 接口
+ */
+
+import devInfo from './devInfo';
+import config from './config';
+
+const { platform } = config;
+
+// 是否是开发模式
+// const isDev = process.env.NODE_ENV === 'development';
+
+const fixed = `platform=${platform}`; // 固定参数
+
+let host;
+const hostID = 2;
+switch (hostID) {
+  // 线上正式
+  case 1:
+    host = `https://svr.kassor.cn/xiaoerbg.php?${fixed}`;
+    break;
+  // 线上测试
+  case 1:
+    host = `http://teams.kassor.cn/xiaoerbg.php?${fixed}`;
+    break;
+  // 本地测试
+  case 2:
+    host = `${devInfo.host}${fixed}`;
+    break;
+  // 其它
+  default:
+}
+
+export default {
+  // 发送短信
+  // sendmsg: 'https://json.kassor.cn/sms/sendmsg.php?a=sendmsg',
+
+  // 登录
+  login: `${host}&a=login`,
+
+  // 取得首面的月份统计
+  getsumbymonth: `${host}&a=getsumbymonth`,
+
+  // 用户信息、首页餐厅信息
+  getinfo: `${host}&a=getinfo`,
+  // 设置用户信息
+  setinfo: `${host}&a=setinfo`,
+
+  // 运营查询
+  getopenrport: `${host}&a=getopenrport`,
+
+  // 月度统计
+  getorderrport: `${host}&a=getorderrport`,
+
+  // 销量分析
+  getskurport: `${host}&a=getskurport`,
+
+  // 点餐员分析
+  getworkreport: `${host}&a=getworkreport`,
+
+  // 获取房间
+  getrooms: `${host}&a=getrooms`,
+  // 删除房间
+  delroom: `${host}&a=delroom`,
+  // 新增修改房间
+  addroom: `${host}&a=addroom`,
+
+  // 获取菜品分类
+  gettype: `${host}&a=gettype`,
+  // 添加、修改菜品分类
+  settype: `${host}&a=settype`,
+  // 删除菜品分类
+  deltype: `${host}&a=deltype`,
+
+  // 获取菜品
+  getfoods: `${host}&a=getfoods`,
+  // 添加、修改菜品资料
+  setfoods: `${host}&a=setfoods`,
+  // 删除菜品
+  delfoods: `${host}&a=delfoods`,
+
+  // 管理点餐员
+  getuser: `${host}&a=getuser`,
+  // 添加、修改点餐用户
+  setuser: `${host}&a=setuser`,
+  // 删除点菜员
+  deluser: `${host}&a=deluser`,
+
+  // 获取打印机
+  getprinter: `${host}&a=getprinter`,
+  // 添加云打印机
+  addcloudprint: `${host}&a=addcloudprint`,
+  // 删除云打印机
+  delcloudprint: `${host}&a=delcloudprint`,
+
+  // 设置收银吧支付信息
+  setbarpay: `${host}&a=setbarpay`,
+  // 设置乐刷支付接口
+  setlepay: `${host}&a=setlepay`,
+
+  // 取得会员用户
+  getvip: `${host}&a=getvip`,
+  //添加会员用户
+  setvip: `${host}&a=setvip`,
+
+  // 取得会员消费记录
+  getbill: `${host}&a=getbill`,
+
+  // 取得充值记录
+  getprepaid: `${host}&a=getprepaid`,
+
+  // 取得积分记录
+  getintegral: `${host}&a=getintegral`,
+
+  // 获取续费记录
+  getrenewlist: `${host}&a=getrenewlist`,
+
+  // 取得网络收款记录
+  getnetpaylist: `${host}&a=getnetpaylist`,
+
+  // 取得网络退款记录
+  getpaybacklist: `${host}&a=getpaybacklist`, 
+
+  // 获取发票清单
+  getinvoice: `${host}&a=getinvoice`,
+  // 新建、修改发票
+  setinvoice: `${host}&a=setinvoice`,
+
+  // 获得企业信息
+  getcompanyinfo: `${host}&a=getcompanyinfo`, 
+  // 设置企业信息
+  setcompanyinfo: `${host}&a=setcompanyinfo`, 
+
+
+  // 代理接口
+  // 获取当前代理下的客户信息
+  getcustomer: `${host}&a=getcustomer`, 
+  // 新增、编辑客户
+  setcustomer: `${host}&a=setcustomer`,
+  // 删除客户
+  delcustomer: `${host}&a=delcustomer`,
+
+  // 获取下属代理商
+  getmysubunit2: `${host}&a=getmysubunit2`, 
+  // 新增、编辑下属
+  setsubunit: `${host}&a=setsubunit`, 
+  // 删除下属
+  delmysubunit: `${host}&a=delmysubunit`,
+
+  // 获取我的合同
+  getcontract: `${host}&a=getcontract`, 
+  // 新增、修改合同订单
+  setcontract: `${host}&a=setcontract`, 
+
+  // 挖掘新用户
+  gettrack: `${host}&a=gettrack`, 
+  get_qrcodelist: `${host}&a=get_qrcodelist`,
+};

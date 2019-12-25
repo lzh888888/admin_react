@@ -1,0 +1,112 @@
+import React, { PureComponent } from 'react';
+import { connect } from 'dva';
+import { Modal, Button, Select, Input, message } from 'antd';
+
+import Qrcode from '../../../cps/Qrcode';
+import downloadImage from '../../../utils/downloadImage';
+import styles from './CreateQRCode.less';
+
+const { Option } = Select;
+
+@connect(({
+  user,
+  rooms,
+}) => ({
+  rooms,
+  currentUser: user.currentUser,
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      size: 200,
+      fileName: '',
+    };
+  }
+
+  onDownload = () => {
+    const { fileName, size } = this.state;
+    const { roomname } = this.props.rooms.activeItem;
+    const name = fileName || roomname;
+    const canvas = this.qrcode.cloneCanvas(size);
+
+    if (!canvas) {
+      message.error('图片错误！');
+      return;
+    }
+    downloadImage(`${name}.png`, canvas.toDataURL('image/png'));
+  }
+
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'rooms/_hideModal',
+      payload: { type: 'QRCode' },
+    });
+  }
+
+  handleAfterClose = () => {}
+
+  render() {
+    const { currentUser, rooms } = this.props;
+    const {
+      activeItem: { billno, roomname },
+      showModalQRCode,
+    } = rooms;
+    const url = `https://www.kassor.cn/qrcodejump/boss?scene=i:${currentUser.billno}-t:${billno}`;
+    return (
+      <Modal
+        className={styles.btnWrap}
+        visible={showModalQRCode}
+        maskClosable={false}
+        title={roomname}
+        width="300px"
+        destroyOnClose
+        onCancel={this.handleCancel}
+        afterClose={this.handleAfterClose}
+        footer={[
+          <Button key="submit" type="primary" onClick={this.onDownload}>
+            下载二维码
+          </Button>,
+        ]}
+      >
+        <div className={styles.container}>
+          <div className={styles.qrcode}>
+            <Qrcode
+              ref={r => this.qrcode = r}
+              options={{
+                data: url,
+                logo: {
+                  // text: roomname,
+                  clearEdges: 3,
+                  size: .2,
+                },
+              }}
+            />
+          </div>
+          <div className={styles.setItem}>
+            图片大小：
+            <Select
+              style={{ width: 120 }}
+              size="small"
+              defaultValue={this.state.size}
+              onChange={(value) => this.setState({ size: value })}
+            >
+              <Option value={200}>200px</Option>
+              <Option value={300}>300px</Option>
+              <Option value={500}>500px</Option>
+            </Select>
+          </div>
+          <div className={styles.setItem}>
+            图片名称：
+            <Input
+              style={{ width: '120px' }}
+              size="small"
+              placeholder={roomname}
+              onChange={(e) => this.setState({ fileName: e.target.value })}
+            />
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+}

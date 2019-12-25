@@ -1,0 +1,238 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Spin, Table, Card, Divider, DatePicker, Button, Popconfirm } from 'antd';
+import moment from 'moment';
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+
+// import ModalAdd from './ModalAdd';
+// import ModalEdit from './ModalEdit';
+import Detail from './Detail';
+
+import styles from './index.less';
+
+const RangePicker = DatePicker.RangePicker;
+// const { Search } = Input;
+@connect(({
+  user,
+  mining,
+  loading,
+}) => ({
+  user,
+  mining,
+  getLoading: !!loading.effects['mining/get'],
+  delLoading: !!loading.effects['mining/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '日期',
+      dataIndex: 'billdate',
+      width: 130,
+    }, {
+      title: '运营商',
+      dataIndex: 'carrier',
+      width: 130,
+    }, {
+      title: '联系电话',
+      dataIndex: 'tel',
+      width: 130,
+    }, {
+      title: '注册方式',
+      dataIndex: 'functions',
+      width: 180,
+    }, {
+      title: '省份',
+      dataIndex: 'province',
+      width: 130,
+    }, {
+      title: '城市',
+      dataIndex: 'city',
+      width: 130,
+    }, {
+      // key: '_fill_',
+    }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 130,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+            <a>删除</a>
+          </Popconfirm>
+          {/* <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item>
+                <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+              </Menu.Item>
+              <Menu.Item>
+                <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+                  <a>删除</a>
+                </Popconfirm>
+              </Menu.Item>
+            </Menu>
+          }
+        >
+          <a>更多 <Icon type="down" /></a>
+        </Dropdown> */}
+        </Fragment>
+      ),
+    }];
+    this.dateStrings = null;
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'mining/clear' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.reUrlP({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 选择日期查询
+  onDateSearch = () => {
+    let params = {};
+    if (this.dateStrings !== null) {
+      params = {
+        ...params,
+        start: this.dateStrings[0],
+        end: this.dateStrings[1],
+      }
+    }
+    this.props.dispatch({
+      type: 'mining/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.reUrlP({
+      page: pagination.current,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'mining/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'mining/del',
+        payload: {
+          uid: phoneno,
+          billno: item.billno,
+        },
+      });
+    }
+  }
+
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'mining/get' });
+  }
+
+  // 修改所需的请求参数后再获取数据
+  reUrlP = (params) => {
+    this.props.dispatch({
+      type: 'mining/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 新增
+  add = () => {
+    this.props.dispatch({
+      type: 'mining/_showModal',
+      payload: { type: 'Add' },
+    });
+  }
+
+
+  // 详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'mining/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  render() {
+    const {
+      mining: { listData, reqParams },
+      getLoading,
+      delLoading,
+    } = this.props;
+    // const extraContent = (
+    //   <div className={styles.extraContent}>
+    //     {/* <Search
+    //       className={styles.extraContentSearch}
+    //       placeholder="客户名称"
+    //       onSearch={value => this.onSearch(value)}
+    //       enterButton
+    //     /> */}
+    //   </div>
+    // );
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={getLoading || delLoading} >
+            <Card
+              className={styles.listCard}
+              // title={AddBtn}
+              bordered={false}
+            // extra={extraContent}
+            >
+              <div className={styles.tableListOperator}>
+                <RangePicker
+                  defaultValue={[moment(`${moment().format('YYYY-MM')}-01`), moment(moment(), 'YYYY-MM-DD')]}
+                  onChange={(dates, dateStrings) => this.dateStrings = dateStrings}
+                />
+                <Button type="primary" style={{ marginLeft: 20 }} onClick={this.onDateSearch}>
+                  查询
+                </Button>
+              </div>
+              <Table
+                // className={styles.table}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                columns={this.columns}
+                dataSource={listData.list}
+                onChange={this.onPageSwitch}
+                pagination={{
+                  current: reqParams.page,
+                  defaultCurrent: 1,
+                  defaultPageSize: 15,
+                  total: listData.total,
+                }}
+              />
+            </Card>
+          </Spin>
+        </div>
+        {/* {<ModalAdd />}
+        {<ModalEdit />} */}
+        {<Detail />}
+      </PageHeaderLayout>
+    );
+  }
+}

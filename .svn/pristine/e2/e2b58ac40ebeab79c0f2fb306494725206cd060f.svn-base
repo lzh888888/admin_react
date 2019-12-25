@@ -1,0 +1,189 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Radio } from 'antd';
+
+import ChooseImage from '../../../cps/ChooseImage';
+
+@connect(({
+  user,
+  subunit,
+  loading,
+}) => ({
+  user,
+  subunit,
+  loading: !!loading.effects['subunit/edit'],
+}))
+@Form.create()
+export default class extends Component {
+  constructor(props) {
+    super(props);
+    this.images = {};
+  }
+
+  // 弹出框关闭后要清空
+  handAfterClose = () => {
+    this.images = {};
+  }
+
+  handCancel = () => {
+    this.props.dispatch({ type: 'subunit/_hideModal', payload: { type: 'Edit' } });
+  }
+
+  // 提交
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      subunit: { activeItem },
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        billno: activeItem.billno,
+        image: activeItem.image,
+        username: activeItem.username,
+        phoneno: activeItem.userno,
+        linkman: activeItem.linkman,
+        tel: activeItem.tel,
+        linkphone: activeItem.linkphone,
+        address: activeItem.address,
+        companyname: activeItem.companyname,
+        bank: activeItem.bank,
+        bankno: activeItem.bankno,
+        allow: activeItem.allow,
+        admin: user.currentUser.phoneno,
+        flat: '1',
+        ...this.images,
+        ...values,
+      };
+      // if (!data.image) {
+      //   message.error('请选择上传一张图片！');
+      //   return;
+      // }
+      dispatch({ type: 'subunit/edit', payload: data });
+    });
+  }
+
+  renderAvatar = () => {
+    const { image } = this.props.subunit.activeItem;
+    return (
+      <div className="avatar-container">
+        <ChooseImage
+          type="compress"
+          source={image} // 显示缩略图
+          onClear={() => this.images.image = ''}
+          onChange={base64 => this.images.image = base64}
+        />
+      </div>
+    );
+  }
+
+  render() {
+    const {
+      editLoading,
+      // subunit: { showModalEdit, activeItem: item },
+      subunit: { showModalEdit, activeItem },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="编辑代理商"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalEdit}
+        confirmLoading={editLoading}
+        onOk={this.handleSubmit}
+        onCancel={this.handCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="用户名称">
+            {getFieldDecorator('username', {
+              initialValue: activeItem.username,
+              rule: [{ required: true, message: '请输入用户名称' }],
+            })(
+              <Input placeholder="用户名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="公司名称">
+            {getFieldDecorator('companyname', {
+              initialValue: activeItem.companyname,
+            })(
+              <Input placeholder="公司名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系人">
+            {getFieldDecorator('linkman', {
+              initialValue: activeItem.linkman,
+            })(
+              <Input placeholder="联系人" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系手机">
+            {getFieldDecorator('linkphone', {
+              initialValue: activeItem.linkphone,
+            })(
+              <Input placeholder="联系手机" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系电话">
+            {getFieldDecorator('tel', {
+              initialValue: activeItem.tel,
+            })(
+              <Input placeholder="联系电话" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系地址">
+            {getFieldDecorator('address', {
+              initialValue: activeItem.address,
+            })(
+              <Input placeholder="联系地址" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="银行名称">
+            {getFieldDecorator('bank', {
+              initialValue: activeItem.bank,
+            })(
+              <Input placeholder="银行名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="银行账号">
+            {getFieldDecorator('bankno', {
+              initialValue: activeItem.bankno,
+            })(
+              <Input placeholder="银行账号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="是否允许使用" hasFeedback={false}>
+            {getFieldDecorator('allow', {
+              initialValue: activeItem.allow,
+              rules: [{ required: true, message: '请选择是或否' }],
+            })(
+              <Radio.Group>
+                <Radio value="1">是</Radio>
+                <Radio value="0">否</Radio>
+              </Radio.Group>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="图片">
+            {this.renderAvatar()}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

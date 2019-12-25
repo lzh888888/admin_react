@@ -1,0 +1,75 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ invoice }) => ({
+  invoice,
+}))((props) => {
+  const {
+    dispatch,
+    invoice: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => {};
+
+  const handCancel = () => {
+    dispatch({
+      type: 'invoice/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  // const renderIsok = () => {
+  //   const { isok } = activeItem;
+  //   const value = isok;
+  //   if (value === '1') {
+  //     return <span>已支付</span>;
+  //   } else if (value === '2') {
+  //     return <span>未支付</span>;
+  //   }
+  // };
+
+  const items = [
+    { label: '抬头名称', content: activeItem.company },
+    { label: '税号', content: activeItem.dutyno },
+    { label: '发票类型', content: activeItem.receipt_type },
+    { label: '发票地址信息', content: activeItem.register_addr },
+    { label: '发票联系信息', content: activeItem.register_tel },
+    { label: '银行', content: activeItem.bank },
+    { label: '银行账号', content: activeItem.bankno },
+    { label: '联系电话', content: activeItem.addressee_tel },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

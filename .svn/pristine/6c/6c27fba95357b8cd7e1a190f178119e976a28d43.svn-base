@@ -1,0 +1,70 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ vip }) => ({
+  vip,
+}))((props) => {
+  const {
+    dispatch,
+    vip: { showModalCharger, activeItem },
+  } = props;
+
+  const handleOk = () => { };
+
+  const handCancel = () => {
+    dispatch({
+      type: 'vip/_hideModal',
+      payload: { type: 'Charger' },
+    });
+  };
+
+
+  const items = [
+    { label: '用户名', content: activeItem.username },
+    { label: '会员卡号', content: activeItem.carno },
+    { label: '累计充值', content: activeItem.totalrcharge },
+    { label: '余额', content: activeItem.balance },
+    { label: '累计积分', content: activeItem.totalpoint },
+    { label: '现有积分', content: activeItem.remainpoint },
+    { label: '店管理员号', content: activeItem.admin },
+    { label: '操作员手机号', content: activeItem.opno },
+    { label: '用户昵称', content: activeItem.nickname },
+    { label: '职位', content: activeItem.post },
+    { label: '服务企业', content: activeItem.company },
+    { label: '地址', content: activeItem.address },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="会员充值"
+      footer={null}
+      maskClosable={false}
+      visible={showModalCharger}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

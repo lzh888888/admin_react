@@ -1,0 +1,406 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Button, Spin, Table, Card, Divider, Popconfirm, Dropdown, Avatar, Menu, Icon, List, Tag } from 'antd';
+
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+// import AddFoods from './AddFoods';
+// import AddType from './AddType';
+// import EditFoods from './EditFoods';
+// import EditType from './EditType';
+// import Detail from './Detail';
+// import imgs from '../../../common/imgs';
+
+import styles from './index.less';
+
+@connect(({
+  user: { currentUser },
+  dishes,
+  loading,
+}) => ({
+  currentUser,
+  dishes,
+  typeLoading: !!loading.effects['dishes/gettype'],
+  listLoading: !!loading.effects['dishes/getfoods'],
+  // dellistLoading: !!loading.effects['dishes/delfoods'],
+  deltypeLoading: !!loading.effects['dishes/deltype'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isEditTypeStatus: false,
+      activeIndex: 0, //选择的菜单类型
+    }
+    this.columns = [{
+      title: '原料编码',
+      dataIndex: 'materialcode',
+      key: 'materialcode',
+      render: text => <a href="javascript:;">{text}</a>,
+    }, {
+      title: '原料名称',
+      dataIndex: 'materialname',
+      key: 'materialname',
+    }, {
+      title: '二维码',
+      dataIndex: 'barcode',
+      key: 'barcode',
+    }, {
+      title: '供应商编号',
+      key: 'vendorcode',
+      dataIndex: 'vendorcode',
+    }, {
+      title: '供应商名称',
+      key: 'vendorname',
+      dataIndex: 'vendorname'
+    }, {
+      title: '原料名称',
+      dataIndex: 'materialname',
+      key: 'materialname',
+    }, {
+      title: '成本价格',
+      dataIndex: 'costprice',
+      key: 'costprice',
+    }, {
+      title: '零售价格',
+      key: 'retailprice',
+      dataIndex: 'retailprice',
+    }, {
+      title: '批发价格',
+      key: 'tradeprice',
+      dataIndex: 'tradeprice'
+    }, {
+      title: '面价',
+      dataIndex: 'price',
+      key: 'price',
+    }, {
+      title: '操作人员',
+      dataIndex: 'operator',
+      key: 'operator',
+    }, {
+      title: '审核人员',
+      key: 'checker',
+      dataIndex: 'checker',
+    }, {
+      title: '原料日期',
+      key: 'materialdate',
+      dataIndex: 'materialdate'
+    }, {
+      title: '数量',
+      key: 'qty',
+      dataIndex: 'qty',
+    }, {
+      title: '单位',
+      key: 'unit',
+      dataIndex: 'unit'
+    }, {
+      title: '规格',
+      dataIndex: 'Standard',
+      key: 'Standard',
+    }, {
+      title: '种类',
+      dataIndex: 'kind',
+      key: 'kind',
+    }, {
+      title: '型号',
+      key: 'model',
+      dataIndex: 'model',
+    }, {
+      title: '折扣',
+      key: 'discount',
+      dataIndex: 'discount'
+    }, {
+      title: '图片1',
+      key: 'image1',
+      dataIndex: 'image',
+    }, {
+      title: '图片2',
+      key: 'image2',
+      dataIndex: 'image2'
+    }, {
+      title: '图片3',
+      dataIndex: 'image3',
+      key: 'image3',
+    }, {
+      title: '评论',
+      dataIndex: 'remark',
+      key: 'remark',
+    }, {
+      title: '同步标记',
+      key: 'sync',
+      dataIndex: 'sync',
+    }, {
+      title: '同步日期',
+      key: 'syncdate',
+      dataIndex: 'syncdate'
+    }];
+    
+     this.data = [];
+  //   this.columns = [{
+  //     title: '图片',
+  //     dataIndex: 'image',
+  //     width: 90,
+  //     render: (text) => {
+  //       return (
+  //         <Avatar src={text || imgs['logo']} shape="square" size="large" />
+  //       );
+  //     },
+  //   }, {
+  //     title: '菜品名',
+  //     dataIndex: 'foodname',
+  //     width: 180,
+  //   }, {
+  //     title: '菜品类型',
+  //     dataIndex: 'typename',
+  //     width: 180,
+  //   }, {
+  //     title: '菜品份量',
+  //     dataIndex: 'volume',
+  //     width: 180,
+  //   }, {
+  //     title: '味道可选',
+  //     dataIndex: 'cookway',
+  //     width: 180,
+  //   }, {
+  //     title: '售价能否编辑',
+  //     dataIndex: 'editable',
+  //     width: 180,
+  //     render: (value) => {
+  //       if (value === '1') {
+  //         return (
+  //           <span>能</span>
+  //         );
+  //       } else {
+  //         return false;
+  //       }
+  //     },
+  //   }, {
+  //     title: '现价',
+  //     dataIndex: 'price',
+  //     width: 180,
+  //   }, {
+  //     title: '单位',
+  //     dataIndex: 'unit',
+  //     width: 180,
+  //   }, {
+  //     title: '零售价',
+  //     dataIndex: 'retailprice',
+  //     width: 180,
+  //   }, {
+  //   //   title: '特色',
+  //   //   dataIndex: 'feature',
+  //   //   width: 180,
+  //   // }, {
+  //     title: '打印机',
+  //     dataIndex: 'print',
+  //     width: 180,
+  //   }, {
+  //     title: '日限量',
+  //     dataIndex: 'sellqty',
+  //     width: 180,
+  //   }, {
+  //     title: '是否在售',
+  //     dataIndex: 'onsale',
+  //     width: 370,
+  //     render: (value) => {
+  //       if (value === '1') {
+  //         return (
+  //           <span>在售</span>
+  //         );
+  //       } else {
+  //         return false;
+  //       }
+  //     },
+  //   }, {
+  //   //   title: '详细描述',
+  //   //   dataIndex: 'memo',
+  //   //   width: 180,
+  //   // }, {
+  //     title: '操作',
+  //     key: 'action',
+  //     fixed: 'right',
+  //     width: 180,
+  //     render: text => (
+  //       <Fragment>
+  //         <a onClick={() => this.gotoDetail(text)}>详细</a>
+  //         <Divider type="vertical" />
+  //         <Dropdown
+  //           overlay={
+  //             <Menu>
+  //               <Menu.Item>
+  //                 <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+  //               </Menu.Item>
+  //               <Menu.Item>
+  //                 <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+  //                   <a>删除</a>
+  //                 </Popconfirm>
+  //               </Menu.Item>
+  //             </Menu>
+  //           }
+  //         >
+  //           <a>更多 <Icon type="down" /></a>
+  //         </Dropdown>
+  //       </Fragment>
+  //     ),
+  //   }];
+
+  }
+
+  // componentDidMount() {
+  //   this.getType();
+  // }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'dishes/_reset' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // // 处理
+  // onAction = (item, type) => {
+  //   // const { phoneno } = this.props.user.currentUser;
+  //   if (type === '编辑') {
+  //     this.props.dispatch({
+  //       type: 'dishes/_showModal',
+  //       payload: { type: 'Editfoods', item },
+  //     });
+  //   } else if (type === '删除') {
+  //     this.props.dispatch({
+  //       type: 'dishes/delfoods',
+  //       payload: {
+  //         sid: item.id,
+  //       },
+  //     });
+  //   }
+  // }
+
+  //改变菜单的请求数据
+  onChangeActiveIndex = (index) =>{
+    this.setState({
+      activeIndex: index
+    }), 
+    this.getList();
+  }
+
+  
+  // // 页数切换
+  // onPageSwitch = (pagination) => {
+  //   this.changeReqParams({
+  //     page: pagination.current,
+  //   });
+  // }
+
+  // // 切换菜品类型编辑状态
+  // onToggleEdit = () => {
+  //   this.setState({
+  //     isEditTypeStatus: !this.state.isEditTypeStatus,
+  //   })
+  // }
+
+  // // 获取菜品类型数据
+  // getType = () => {
+  //   this.props.dispatch({ type: 'dishes/gettype' }).then((bool) => {
+  //     if (bool) {
+  //       this.getList();
+  //     }
+  //   });
+  // }
+
+  // 获取该类型下的所有菜品
+  getList = async (index) => {
+    const { dispatch } = this.props;
+    //  await dispatch({
+    //   type: 'dishes/_changeReqParams',
+    //   payload: { activeIndex: this.state.activeIndex, },
+    // });
+    await dispatch({
+      type: 'dishes/_appendTypeData',
+      payload: {
+        activeIndex: this.state.activeIndex,
+      },
+    });
+    dispatch({ type: 'dishes/getfoods' });
+  }
+
+  // // 修改所需的请求参数后再获取数据
+  // changeReqParams = (params) => {
+  //   this.props.dispatch({
+  //     type: 'dishes/_changeReqParams',
+  //     payload: { item: params },
+  //   });
+  //   this.getList();
+  // }
+
+  // // 查看详情
+  // gotoDetail = (text) => {
+  //   this.props.dispatch({
+  //     type: 'dishes/_showModal',
+  //     payload: { type: 'Detail', item: text },
+  //   });
+  // }
+
+  // // 添加菜品
+  // gotoAddFoods = () => {
+  //   this.props.dispatch({
+  //     type: 'dishes/_showModal',
+  //     payload: { type: 'Addfoods', item: {} },
+  //   });
+  // }
+
+  // // 添加菜品类型
+  // gotoAddType = () => {
+  //   this.props.dispatch({
+  //     type: 'dishes/_showModal',
+  //     payload: { type: 'Addtype', item: {} },
+  //   });
+  // }
+
+  // gotoEditType = (item) => {
+  //   this.props.dispatch({
+  //     type: 'dishes/_showModal',
+  //     payload: { type: 'Edittype', item },
+  //   });
+  // }
+
+  // gotoDelType = (item) => {
+  //   const { phoneno } = this.props.currentUser;
+  //   this.props.dispatch({
+  //     type: 'dishes/deltype',
+  //     payload: {
+  //       uid: phoneno,
+  //       billno: item.billno,
+  //     },
+  //   });
+  // }
+
+  render() {
+    // const {
+    //   dishes: { typeData, listData, reqParams },
+    //   typeLoading,
+    //   listLoading,
+    //   dellistLoading,
+    //   deltypeLoading,
+    // } = this.props;
+    return (
+      <PageHeaderLayout>
+        <Card>
+          库存状态
+        </Card>
+        <Card>
+          <Table columns={this.columns} dataSource={this.data} />
+        </Card>
+        {/* <Button
+          onClick={this.getList(0)}
+        >
+          获取数据
+        </Button> */}
+      </PageHeaderLayout>
+    );
+  }
+}

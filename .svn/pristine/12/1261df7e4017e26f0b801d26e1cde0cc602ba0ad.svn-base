@@ -1,0 +1,207 @@
+import React, { PureComponent } from 'react';
+import { connect } from 'dva';
+import { Spin, Card, Button, Form, Input, Radio } from 'antd';
+// import moment from 'moment';
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+// import ChooseImage from '../../../cps/ChooseImage';
+
+import styles from './index.less';
+
+const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  pay: { activeItem },
+  loading,
+}) => ({
+  user,
+  activeItem,
+  barloading: !!loading.effects['pay/setbarpay'],
+  leloading: !!loading.effects['pay/setlepay'],
+}))
+@Form.create()
+export default class extends PureComponent {
+
+  constructor(props) {
+    super(props);
+    this.images = {};
+    this.state = {
+      isBarPayStatus: false,
+      isLePayStatus: false,
+    }
+  }
+
+  // componentDidMount() {
+  //   this.getcompanyinfo();
+  // }
+
+  // 选择显示按钮
+  onToggleBarPay = () => {
+    this.setState({
+      isBarPayStatus: !this.state.isBarPayStatus,
+      isLePayStatus: !this.state.isLePayStatus,
+    })
+  }
+
+  // 获取数据
+  // getcompanyinfo = () => {
+  //   this.props.dispatch({ type: 'pay/setbarpay' });
+  // }
+
+  setbarpay = () => {
+    // e.preventDefault();
+    const {
+      user,
+      // activeItem,
+      form: { validateFieldsAndScroll },
+      dispatch,
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        userno: user.currentUser.phoneno,
+        barcode: '',
+        barsn: '',
+        barkey: '',
+        ...values,
+      };
+      dispatch({ type: 'pay/setbarpay', payload: data });
+    });
+  }
+
+  setlepay = () => {
+    // e.preventDefault();
+    const {
+      user,
+      // activeItem,
+      form: { validateFieldsAndScroll },
+      dispatch,
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        userno: user.currentUser.phoneno,
+        lecode: '',
+        leqty: '',
+        letype: '',
+        ...values,
+      };
+      dispatch({ type: 'pay/setlepay', payload: data });
+    });
+  }
+
+
+  render() {
+    const {
+      barloading,
+      leloading,
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      // hasFeedback: true,
+    };
+
+    const submitFormLayout = {
+      wrapperCol: {
+        xs: { span: 24, offset: 0 },
+        sm: { span: 10, offset: 7 },
+      },
+    };
+
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={barloading || leloading}>
+            <Card
+              bordered={false}
+            >
+              <RadioGroup defaultValue="1" style={{ marginBottom: 50 }}>
+                <Radio value="1" onClick={this.onToggleBarPay}>收钱吧支付接口配置</Radio>
+                <Radio value="2" onClick={this.onToggleBarPay}>乐刷支付接口配置</Radio>
+              </RadioGroup>
+              {!this.state.isBarPayStatus && (
+                <Form layout="horizontal">
+                  <Form.Item {...basicFormProps} label="激活码">
+                    {getFieldDecorator('barcode', {
+                      initialValue: "",
+                      rules: [{ required: true, message: '激活码' }],
+                    })(
+                      <Input placeholder="请输入激活码" />
+                    )}
+                  </Form.Item>
+                  <Form.Item {...basicFormProps} label="终端号">
+                    {getFieldDecorator('barsn', {
+                      initialValue: "",
+                      rules: [{ required: true, message: '终端号' }],
+                    })(
+                      <Input placeholder="请输入终端号" />
+                    )}
+                  </Form.Item>
+                  <Form.Item {...basicFormProps} label="密码">
+                    {getFieldDecorator('barkey', {
+                      initialValue: "",
+                      rules: [{ required: true, message: '密码' }],
+                    })(
+                      <Input placeholder="请输入密码" />
+                    )}
+                  </Form.Item>
+                  <Form.Item {...submitFormLayout} style={{ marginTop: 32 }}>
+                    <Button type="primary" htmlType="submit" loading={false} onClick={this.setbarpay}>
+                      提交
+                    </Button>
+                  </Form.Item>
+                </Form>
+              )}
+
+              {this.state.isLePayStatus && (
+                <Form layout="horizontal">
+                  <Form.Item {...basicFormProps} label="乐刷商户号">
+                    {getFieldDecorator('lecode', {
+                      initialValue: "",
+                      rules: [{ required: true, message: '乐刷商户号' }],
+                    })(
+                      <Input placeholder="请输入乐刷商户号" />
+                    )}
+                  </Form.Item>
+                  <Form.Item {...basicFormProps} label="门店用户号">
+                    {getFieldDecorator('leqty', {
+                      initialValue: "",
+                      rules: [{ required: false, message: '门店用户号' }],
+                    })(
+                      <Input placeholder="请输入门店用户号" />
+                    )}
+                  </Form.Item>
+                  <Form.Item {...basicFormProps} label="结算方式">
+                    {getFieldDecorator('letype', {
+                      initialValue: "0",
+                      rules: [{ required: true, message: '结算方式' }],
+                    })(
+                      <RadioGroup>
+                        <Radio value="0">T+0</Radio>
+                        <Radio value="1">T+1</Radio>
+                      </RadioGroup>
+                    )}
+                  </Form.Item>
+                  <Form.Item {...submitFormLayout} style={{ marginTop: 32 }}>
+                    <Button type="primary" htmlType="submit" loading={false} onClick={this.setlepay}>
+                      提交
+                    </Button>
+                  </Form.Item>
+                </Form>
+              )}
+
+            </Card>
+          </Spin>
+        </div>
+      </PageHeaderLayout>
+    );
+  }
+}

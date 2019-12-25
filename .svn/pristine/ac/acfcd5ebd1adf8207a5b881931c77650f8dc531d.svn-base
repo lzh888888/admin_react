@@ -1,0 +1,92 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+import ChooseImage from '../../../cps/ChooseImage';
+
+export default connect(({ dishes }) => ({
+  dishes,
+}))((props) => {
+  const {
+    dispatch,
+    dishes: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => { };
+
+  const handCancel = () => {
+    dispatch({
+      type: 'dishes/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const renderAvatar = () => {
+    const { image, image1, image2, image3 } = activeItem;
+    return (
+      <div className="avatar-container">
+        {!!image && <ChooseImage isClearIcon={false} source={image} />}
+        {!!image1 && <ChooseImage isClearIcon={false} source={image1} />}
+        {!!image2 && <ChooseImage isClearIcon={false} source={image2} />}
+        {!!image3 && <ChooseImage isClearIcon={false} source={image3} />}
+      </div>
+    );
+  };
+
+  const renderOnsale = () => {
+    const { onsale } = activeItem;
+    const value = onsale;
+    if (value === '1') {
+      return <span>在售</span>;
+    } else {
+      return false;
+    }
+  };
+
+  const items = [
+    { label: '菜品名', content: activeItem.foodname },
+    { label: '菜品类型', content: activeItem.typename },
+    { label: '菜品份量', content: activeItem.volume },
+    { label: '现价', content: activeItem.price },
+    { label: '单位', content: activeItem.unit },
+    { label: '零售价', content: activeItem.retailprice },
+    { label: '特色', content: activeItem.feature },
+    { label: '打印机', content: activeItem.print },
+    { label: '日限量', content: activeItem.sellqty },
+    { label: '是否在售', content: renderOnsale() },
+    { label: '详细描述', content: activeItem.memo },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      {renderAvatar()}
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

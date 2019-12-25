@@ -1,0 +1,246 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Spin, Table, Card, Dropdown, Menu, Icon, Input, Button, Avatar, Divider, Popconfirm } from 'antd';
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+import ModalAdd from './ModalAdd';
+import ModalEdit from './ModalEdit';
+import ModalDetail from './ModalDetail';
+
+import imgs from '../../../common/imgs';
+import styles from './index.less';
+
+const { Search } = Input;
+
+
+@connect(({
+  user,
+  customer,
+  loading,
+}) => ({
+  user,
+  customer,
+  getLoading: !!loading.effects['customer/get'],
+  delLoading: !!loading.effects['customer/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '头像',
+      dataIndex: 'image',
+      width: 80,
+      render: text => (
+        <Avatar src={text || imgs['logo']} shape="square" size="large" />
+      ),
+    }, {
+      title: '客户名称',
+      dataIndex: 'username',
+      width: 130,
+    }, {
+      title: '公司名称',
+      dataIndex: 'title',
+      width: 130,
+    }, {
+      title: '联系人',
+      dataIndex: 'linkman',
+      width: 130,
+    }, {
+      title: '联系电话',
+      dataIndex: 'tel',
+      width: 130,
+    }, {
+      title: '地址',
+      dataIndex: 'address',
+      width: 130,
+    }, {
+      title: '许可证',
+      dataIndex: 'license',
+      width: 130,
+    }, {
+      title: '合同金额',
+      dataIndex: 'amount',
+      width: 130,
+    }, {
+      title: '已付金额',
+      dataIndex: 'paid',
+      width: 130,
+    }, {
+      //   title: '约餐功能',
+      //   dataIndex: 'showboss', // 0否，1是
+      //   width: 90,
+      //   render: value => <Badge {...statusMap[value]} />,
+      // }, {
+      title: '允许使用',
+      dataIndex: 'allow', // 0否，1是
+      width: 130,
+      render: (value) => {
+        if (value === '1') {
+          return <span>是</span>;
+        } else if (value === '0') {
+          return <span>否</span>;
+        }
+      },
+    }, {
+      //   key: '_fill_',
+      // }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 130,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Dropdown
+            overlay={
+              <Menu>
+                <Menu.Item>
+                  <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+                </Menu.Item>
+                <Menu.Item>
+                  <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+                    <a>删除</a>
+                  </Popconfirm>
+                </Menu.Item>
+              </Menu>
+            }
+          >
+            <a>更多 <Icon type="down" /></a>
+          </Dropdown>
+        </Fragment>
+      ),
+    }];
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'customer/_clear' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.reUrlP({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.reUrlP({
+      page: pagination.current,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'customer/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'customer/del',
+        payload: {
+          admin: phoneno,
+          billno: item.billno,
+        },
+      });
+    }
+  }
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'customer/get' });
+  }
+
+  // 修改所需的请求参数后再获取数据
+  reUrlP = (params) => {
+    this.props.dispatch({
+      type: 'customer/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 新增
+  gotoAdd = () => {
+    this.props.dispatch({
+      type: 'customer/_showModal',
+      payload: { type: 'Add', item: {} },
+    });
+  }
+
+  // 详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'customer/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  render() {
+    const {
+      customer: { listData, reqParams },
+      getLoading,
+      delLoading,
+    } = this.props;
+    const extraContent = (
+      <div className={styles.extraContent}>
+        <Search
+          className={styles.extraContentSearch}
+          placeholder="客户名称"
+          onSearch={value => this.onSearch(value)}
+          enterButton
+        />
+      </div>
+    );
+    const AddBtn = (
+      <Button
+        type="primary"
+        icon="plus"
+        onClick={this.gotoAdd}
+      >
+        新增客户
+      </Button>
+    );
+    return (
+      <PageHeaderLayout>
+        <div className={styles.standardList}>
+          <Spin spinning={getLoading || delLoading} >
+            <Card
+              className={styles.listCard}
+              title={AddBtn}
+              bordered={false}
+              extra={extraContent}
+            >
+              <Table
+                // style={{ height: 1200 }}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                dataSource={listData.list}
+                columns={this.columns}
+                onChange={this.onPageSwitch}
+                pagination={{
+                  current: reqParams.page,
+                  defaultCurrent: 1,
+                  defaultPageSize: 15,
+                  total: listData.total,
+                }}
+              />
+            </Card>
+          </Spin>
+        </div>
+        {<ModalAdd />}
+        {<ModalEdit />}
+        {<ModalDetail />}
+      </PageHeaderLayout>
+    );
+  }
+}

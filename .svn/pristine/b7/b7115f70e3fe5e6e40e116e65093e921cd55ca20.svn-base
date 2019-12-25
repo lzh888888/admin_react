@@ -1,0 +1,60 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ caterer }) => ({
+  caterer,
+}))((props) => {
+  const {
+    dispatch,
+    caterer: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => {};
+
+  const handCancel = () => {
+    dispatch({
+      type: 'caterer/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const items = [
+    { label: '用户名', content: activeItem.username },
+    { label: '数量', content: activeItem.totalqty },
+    { label: '合计', content: activeItem.total },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

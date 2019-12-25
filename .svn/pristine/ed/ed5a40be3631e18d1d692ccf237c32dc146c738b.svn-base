@@ -1,0 +1,16 @@
+/* eslint-disable global-require */
+
+export default {
+  'logo': require('../assets/logo.png'),
+  'avatar': require('../assets/avatar.png'),
+  'empty-notice': require('../assets/empty-notice.svg'),
+  'app_1': require('../assets/app_1.png'),
+  'app_2': require('../assets/app_2.png'),
+  'app_3': require('../assets/app_3.png'),
+  'app_4': require('../assets/app_4.png'),
+  'app_5': require('../assets/app_5.png'),
+  'muban_1': require('../assets/muban_1.png'),
+  'muban_2': require('../assets/muban_2.png'),
+  'slider_1': require('../assets/slider_1.png'),
+  'slider_2': require('../assets/slider_2.png'),
+};

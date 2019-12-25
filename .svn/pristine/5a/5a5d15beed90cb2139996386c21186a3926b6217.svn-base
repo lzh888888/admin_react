@@ -1,0 +1,63 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ mining }) => ({
+  mining,
+}))((props) => {
+  const {
+    dispatch,
+    mining: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => {};
+
+  const handCancel = () => {
+    dispatch({
+      type: 'mining/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const items = [
+    { label: '日期', content: activeItem.billdate },
+    { label: '运营商', content: activeItem.carrier },
+    { label: '联系电话', content: activeItem.tel },
+    { label: '注册方式', content: activeItem.functions },
+    { label: '省份', content: activeItem.province },
+    { label: '城市', content: activeItem.city },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

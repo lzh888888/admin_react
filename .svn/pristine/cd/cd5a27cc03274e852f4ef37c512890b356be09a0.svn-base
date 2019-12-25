@@ -1,0 +1,175 @@
+import { message, notification } from 'antd';
+import http from '../utils/http';
+import { delay } from '../utils/tools';
+
+// 获取
+async function __get(params) {
+  return http({ method: 'get', api: 'getrooms', params });
+}
+async function __add(params) {
+  return http({ method: 'get', api: 'addroom', params });
+}
+async function __del(params) {
+  return http({ method: 'get', api: 'delroom', params });
+}
+async function __addParintInfo() {
+  return delay(1500);
+}
+
+const initState = {
+  listData: {
+    list: [],
+    total: 0,
+  },
+
+  // 选中项，编辑和详情需要获取项数据
+  activeItem: {},
+
+  // 弹出框的打开和关闭
+  showModalAdd: false,
+  showModalEdit: false,
+  showModalDetail: false,
+  showModalQRCode: false,
+  showModalPrinter: false,
+
+  // 请求参数
+  reqParams: {
+    uid: '',
+    sorter: 'sortno_ascend',
+  },
+};
+
+export default {
+  namespace: 'rooms',
+
+  state: initState,
+
+  effects: {
+    *get(_, { call, put, select }) {
+      try {
+        const { user, rooms } = yield select(state => state);
+        const params = { ...rooms.reqParams, uid: user.currentUser.phoneno };
+
+        const { status, msg, data } = yield call(__get, params);
+        if (status === '0') {
+          yield put({
+            type: '_appendListData',
+            payload: { list: data.list, total: Number(data.total) },
+          });
+        } else {
+          message.warn(msg);
+          yield put({
+            type: '_appendListData',
+            payload: { list: [], total: 0 },
+          });
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    *add({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__add, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({
+            type: '_hideModal',
+            payload: { type: 'Add' },
+          });
+          yield put({ type: 'get' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    *edit({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__add, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({
+            type: '_hideModal',
+            payload: { type: 'Edit' },
+          });
+          yield put({ type: 'get' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    *del({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__del, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({ type: 'get' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    // 打印
+    *addParintInfo({ payload }, { put, call }) {
+      try {
+        yield call(__addParintInfo, payload);
+        yield put({
+          type: '_hideModal',
+          payload: { type: 'Printer' },
+        });
+        notification.success({
+          message: '提交成功',
+          description: '我们发货后会已短信或电话的方式通知您！',
+        });
+      } catch (e) {
+        //
+      }
+    },
+  },
+
+  reducers: {
+    _appendListData(state, action) {
+      return {
+        ...state,
+        listData: action.payload,
+      };
+    },
+
+    // 修改请求参数
+    _changeReqParams(state, action) {
+      return {
+        ...state,
+        reqParams: {
+          ...state.reqParams,
+          ...action.payload,
+        },
+      };
+    },
+
+    _showModal(state, { payload }) {
+      return {
+        ...state,
+        activeItem: payload.item || {},
+        [`showModal${payload.type}`]: true,
+      };
+    },
+
+    _hideModal(state, { payload }) {
+      return { ...state, [`showModal${payload.type}`]: false };
+    },
+
+    // 该页面注销后要清除当前的状态，防止下次进来还是之前的数据
+    _clear() {
+      return initState;
+    },
+  },
+};

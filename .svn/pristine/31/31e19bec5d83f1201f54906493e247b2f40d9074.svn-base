@@ -1,0 +1,125 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, InputNumber, Radio } from 'antd';
+
+// import config from '../../../common/config';
+
+const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  caterer,
+  loading,
+}) => ({
+  user,
+  caterer,
+  loading: !!loading.effects['caterer/add'],
+}))
+@Form.create()
+export default class extends Component {
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'caterer/_hideModal',
+      payload: { type: 'Add' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        flat: '0',
+        uid: user.currentUser.phoneno,
+        billno: '',
+        ...values,
+        area: values.area === '暂无' ? '' : values.area || '',
+        print: values.print === '暂无' ? '' : values.print || '',
+      };
+      dispatch({ type: 'caterer/add', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      caterer: { showModalAdd },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+    const FormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+    };
+
+    return (
+      <Modal
+        title="点餐员续费"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalAdd}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="开通人数">
+            {getFieldDecorator('roomname', {
+              initialValue: '',
+              rules: [{ required: true, message: '开通人数' }],
+            })(
+              <Input addonAfter="人" placeholder="请输入开通人数" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="开通时长">
+            {getFieldDecorator('area', {
+              initialValue: '',
+              rules: [{ required: true, message: '开通时长' }],
+            })(
+              <Input addonAfter="元" placeholder="请输入开通时长" />
+            )}
+          </Form.Item>
+          <Form.Item {...FormProps} label="支付方式">
+            {getFieldDecorator('roomtype', {
+              initialValue: '0',
+              rules: [{ required: true, message: '支付方式' }],
+            })(
+              <RadioGroup>
+                <Radio value="0">微信</Radio>
+                <Radio value="1">支付宝</Radio>
+              </RadioGroup>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="应付金额">
+            {getFieldDecorator('seats', {
+              initialValue: '',
+              rules: [{ required: true, message: '应付金额' }],
+            })(
+              <InputNumber min={0} style={{ width: '40%' }} placeholder="应付金额" />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

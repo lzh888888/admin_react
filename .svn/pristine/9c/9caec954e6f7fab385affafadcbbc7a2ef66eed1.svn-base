@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>小二点菜管理</title>
+  <link rel="icon" href="./favicon.png" type="image/x-icon">
+<link href="./index.30d84332.css" rel="stylesheet"></head>
+
+<body>
+  <!--[if lt IE 10]><p>你使用老旧浏览器会对您的计算机安全造成威胁，请<a href="http://browsehappy.com/">升级</a>你的浏览器。</p><![endif]-->
+  <div id="root"></div>
+<script type="text/javascript" src="./index.4b93632d.js"></script></body>
+
+</html>

@@ -1,0 +1,53 @@
+/**
+ * 配置
+ */
+import React, { Fragment } from 'react';
+import { Icon } from 'antd';
+
+const appName = '小二点菜';
+const copyright = <Fragment>Copyright <Icon type="copyright" /> 2018 广州壹软网络科技有限公司</Fragment>;
+
+export default {
+  appName,
+  platform: 'web_bg',
+
+  copyright,
+  basicTitle: `${appName}管理`,
+
+  globalFooterLinks: [{
+    key: '帮助',
+    title: '帮助',
+    href: 'http://www.qzooe.com/',
+    blankTarget: true,
+  }, {
+    key: '隐私',
+    title: '隐私',
+    href: 'http://www.qzooe.com/',
+    blankTarget: true,
+  }, {
+    key: '条款',
+    title: '条款',
+    href: 'http://www.qzooe.com/',
+    blankTarget: true,
+  }],
+
+  roomAreaMaps: [
+    '暂无', 'A区', 'B区', 'C区', 'D区', 'E区', 'F区', 'G区', 'H区', 'I区', 'J区', 'K区', 'V区',
+    '一楼', '二楼', '三楼', '四楼', '五楼', '六楼', '七楼', '八楼',
+  ],
+
+  roomPrintMaps: [
+    '暂无', '默认打印机', '订单打印机', '订单打印机2', '订单打印机3', '订单打印机4', '订单打印机5',
+  ],
+
+  foodsVolumeMaps: ['一种份量','两种份量','三种份量','四种份量','五种份量','六种份量','七种份量','八种份量','九种份量','十种份量'],
+
+  foodsPrintMaps: [
+    '不打印', '厨房打印机01','厨房打印机02', '厨房打印机03', '厨房打印机04', '厨房打印机05'
+  ],
+
+  cloudPrintMaps: [
+    '订单打印机', '订单打印机02','厨房打印机01','厨房打印机02','厨房打印机03','厨房打印机05','排队打印机','默认打印机',
+  ],
+};
+

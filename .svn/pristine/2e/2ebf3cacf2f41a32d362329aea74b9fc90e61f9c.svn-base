@@ -1,0 +1,77 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ integral }) => ({
+  integral,
+}))((props) => {
+  const {
+    dispatch,
+    integral: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => { };
+
+  const handCancel = () => {
+    dispatch({
+      type: 'integral/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+
+  const renderStatus = () => {
+    const { status } = activeItem;
+    const value = status;
+    if(value === '0') {
+      return(
+        <span>不成功</span>
+      );
+    } else if(value === '1') {
+      return(
+        <span>成功</span>
+      );
+    } 
+  }
+
+  const items = [
+    { label: '用户号', content: activeItem.userno },
+    { label: '原积分', content: activeItem.orig },
+    { label: '现有积分', content: activeItem.curr },
+    { label: '本次积分', content: activeItem.point },
+    { label: '付款状态', content: renderStatus() },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

@@ -1,0 +1,276 @@
+import { message } from 'antd';
+import http from '../utils/http';
+
+async function __gettype(params) {
+  return http({ method: 'get', api: 'gettype', params });
+}
+
+async function __getfoods(params) {
+  return http({ method: 'get', api: 'getfoods', params });
+}
+
+async function __addtype(data) {
+  return http({ method: 'post', api: 'settype', data });
+}
+
+async function __addfoods(data) {
+  return http({ method: 'post', api: 'setfoods', data });
+}
+
+// async function __add(params) {
+//   return http({ method: 'get', api: 'addroom', params });
+// }
+async function __deltype(params) {
+  return http({ method: 'get', api: 'deltype', params });
+}
+async function __delfoods(params) {
+  return http({ method: 'get', api: 'delfoods', params });
+}
+
+const initState = {
+  typeData: {
+    list: [],
+    total: 0,
+    activeIndex: 0, // 选中的菜品类型，默认第一个
+  },
+
+  listData: {
+    list: [],
+    total: 0,
+  },
+
+  // 选中项，编辑和详情需要获取项数据
+  activeItem: {},
+
+  // 弹出框的打开和关闭
+  showModalAddfoods: false,
+  showModalEditfoods: false,
+  showModalAddtype: false,
+
+  // 请求菜品参数
+  reqParams: {
+    page: 1,
+    uid: '',
+    tno: '',
+    keyword: '',
+  },
+};
+
+export default {
+  namespace: 'dishes',
+
+  state: initState,
+
+  effects: {
+    *getfoods(_, { call, put, select }) {
+      try {
+        const { user, dishes } = yield select(state => state);
+        const { typeData } = dishes;
+        let typeDataBillNo = 0;
+        if(typeData.activeIndex === "0000"){
+           typeDataBillNo = "0000";
+        }else{
+           typeDataBillNo =  typeData.list[typeData.activeIndex].billno;
+        }
+        const params = {
+          ...dishes.reqParams,
+          uid: user.currentUser.phoneno,
+          tno: typeDataBillNo,
+        };
+
+        const { status, msg, data } = yield call(__getfoods, params);
+        if (status === '0') {
+          yield put({
+            type: '_appendListData',
+            payload: { list: data.list, total: Number(data.total) },
+          });
+        } else {
+          message.warn(msg);
+          yield put({
+            type: '_appendListData',
+            payload: { list: [], total: 0 },
+          });
+        }
+      } catch (e) {
+        //
+      }
+    },
+    
+    *gettype(_, { call, put, select }) {
+      try {
+        const { currentUser } = yield select(state => state.user);
+        const params = { uid: currentUser.phoneno };
+
+        const { status, msg, data } = yield call(__gettype, params);
+        if (status === '0') {
+          yield put({
+            type: '_appendTypeData',
+            payload: { list: data.list, total: Number(data.total) },
+          });
+        } else {
+          message.warn(msg);
+          yield put({
+            type: '_appendTypeData',
+            payload: { list: [], total: 0 },
+          });
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+
+    // 添加菜品
+    *addfoods({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__addfoods, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({
+            type: '_hideModal',
+            payload: { type: 'Addfoods' },
+          });
+          yield put({ type: 'getfoods' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    // 添加菜品类型
+     *addtype({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__addtype, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({
+            type: '_hideModal',
+            payload: { type: 'Addtype' },
+          });
+          yield put({ type: 'gettype' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    // 修改菜品
+    *editfoods({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__addfoods, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({
+            type: '_hideModal',
+            payload: { type: 'Editfoods' },
+          });
+          yield put({ type: 'getfoods' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+    
+    // 修改菜品类型
+    *edittype({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__addtype, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({
+            type: '_hideModal',
+            payload: { type: 'Edittype' },
+          });
+          yield put({ type: 'gettype' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+
+    // 删除菜品分类
+    *deltype({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__deltype, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({ type: 'gettype' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+    
+    // 删除菜品
+    *delfoods({ payload }, { put, call }) {
+      try {
+        const { status, msg } = yield call(__delfoods, payload);
+        if (status === '0') {
+          message.success(msg);
+          yield put({ type: 'getfoods' });
+        } else {
+          message.warn(msg);
+        }
+      } catch (e) {
+        //
+      }
+    },
+  },
+
+  reducers: {
+    _appendListData(state, action) {
+      return {
+        ...state,
+        listData: action.payload,
+      };
+    },
+
+    _appendTypeData(state, action) {
+      return {
+        ...state,
+        typeData: {
+          ...state.typeData,
+          ...action.payload,
+        },
+      };
+    },
+
+    // 修改请求参数
+    _changeReqParams(state, action) {
+      return {
+        ...state,
+        reqParams: {
+          ...state.reqParams,
+          ...action.payload,
+        },
+      };
+    },
+
+    _showModal(state, { payload }) {
+      return {
+        ...state,
+        activeItem: payload.item || {},
+        [`showModal${payload.type}`]: true,
+      };
+    },
+
+    _hideModal(state, { payload }) {
+      return { ...state, [`showModal${payload.type}`]: false };
+    },
+
+    // 该页面注销后要重置当前的状态，防止下次进来还是之前的数据
+    _reset() {
+      return initState;
+    },
+  },
+};

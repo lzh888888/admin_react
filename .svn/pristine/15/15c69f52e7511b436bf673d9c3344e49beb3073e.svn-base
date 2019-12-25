@@ -1,0 +1,229 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Spin, Table, Card, Divider, Popconfirm, Button, Dropdown, Menu, Icon } from 'antd';
+
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+import Add from './Add';
+import Edit from './Edit';
+import Detail from './Detail';
+import styles from './index.less';
+
+@connect(({
+  user,
+  invoice,
+  loading,
+}) => ({
+  user,
+  invoice,
+  getLoading: !!loading.effects['invoice/get'],
+  delLoading: !!loading.effects['invoice/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '抬头名称',
+      dataIndex: 'company',
+      width: 180,
+    }, {
+      title: '税号',
+      dataIndex: 'dutyno',
+      width: 180,
+    }, {
+      title: '发票类型',
+      dataIndex: 'receipt_type',
+      width: 180,
+    }, {
+      title: '发票地址信息',
+      dataIndex: 'register_addr',
+      width: 180,
+    }, {
+      title: '发票联系信息',
+      dataIndex: 'register_tel',
+      width: 180,
+    }, {
+      title: '银行',
+      dataIndex: 'bank',
+      width: 180,
+    }, {
+      title: '银行账号',
+      dataIndex: 'bankno',
+      width: 180,
+      // }, {
+      //   title: '开具类型',
+      //   dataIndex: 'addressee',
+      //   width: 180,
+    }, {
+      title: '联系电话',
+      dataIndex: 'addressee_tel',
+      width: 180,
+      // }, {
+      //   title: '发票明细',
+      //   dataIndex: 'addressee_addr',
+      //   width: 180,
+      // }, {
+      //   title: '发票明细',
+      //   dataIndex: 'billdate',
+      //   width: 180,
+    }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 130,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Dropdown
+            overlay={
+              <Menu>
+                <Menu.Item>
+                  <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+                </Menu.Item>
+                <Menu.Item>
+                  <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+                    <a>删除</a>
+                  </Popconfirm>
+                </Menu.Item>
+              </Menu>
+            }
+          >
+            <a>更多 <Icon type="down" /></a>
+          </Dropdown>
+        </Fragment>
+      ),
+    }];
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'invoice/_clear' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'invoice/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'invoice/del',
+        payload: {
+          uid: phoneno,
+          billno: item.billno,
+        },
+      });
+    // } else if (type === '二维码') {
+    //   this.props.dispatch({
+    //     type: 'invoice/_showModal',
+    //     payload: { type: 'QRCode', item },
+    //   });
+    }
+  }
+
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.changeReqParams({
+      page: pagination.current,
+    });
+  }
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'invoice/get' });
+  }
+
+  // handleTableChange = (pagination, filters, sorter) => {
+  //   const params = {};
+  //   if (sorter.field) {
+  //     params.sorter = `${sorter.field}_${sorter.order}`;
+  //   } else {
+  //     params.sorter = '';
+  //   }
+  //   this.changeReqParams(params);
+  // }
+
+  // 修改所需的请求参数后再获取数据
+  changeReqParams = (params) => {
+    this.props.dispatch({
+      type: 'invoice/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 查看详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'invoice/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  // 添加
+  gotoAdd = () => {
+    this.props.dispatch({
+      type: 'invoice/_showModal',
+      payload: { type: 'Add', item: {} },
+    });
+  }
+
+
+  render() {
+    const {
+      invoice: { listData, reqParams },
+      getLoading,
+      delLoading,
+    } = this.props;
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={getLoading || delLoading}>
+            <Card
+              className={styles.listCard}
+              bordered={false}
+            >
+              <div className={styles.tableListOperator}>
+                <Button icon="plus" type="primary" onClick={this.gotoAdd}>
+                  申请发票
+                </Button>
+              </div>
+              <Table
+                // className={styles.table}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                columns={this.columns}
+                dataSource={listData.list}
+                onChange={this.onPageSwitch}
+                pagination={{
+                  current: reqParams.page,
+                  defaultCurrent: 1,
+                  defaultPageSize: 15,
+                  total: listData.total,
+                }}
+              />
+            </Card>
+          </Spin>
+        </div>
+        <Add />
+        <Edit />
+        <Detail />
+      </PageHeaderLayout>
+    );
+  }
+}

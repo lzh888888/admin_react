@@ -1,0 +1,211 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Spin, Table, Card, Divider, Popconfirm, DatePicker, Button } from 'antd';
+import moment from 'moment';
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+import Add from './Add';
+import Edit from './Edit';
+import Detail from './Detail';
+import styles from './index.less';
+
+const RangePicker = DatePicker.RangePicker;
+
+@connect(({
+  user,
+  integral,
+  loading,
+}) => ({
+  user,
+  integral,
+  getLoading: !!loading.effects['integral/get'],
+  delLoading: !!loading.effects['integral/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '用户号',
+      dataIndex: 'userno',
+      width: 180,
+    }, {
+      title: '原积分',
+      dataIndex: 'orig',
+      width: 180,
+    }, {
+      title: '现有积分',
+      dataIndex: 'curr',
+      width: 180,
+    }, {
+      title: '本次积分',
+      dataIndex: 'point',
+      width: 180,
+    }, {
+      title: '付款状态',
+      dataIndex: 'status',
+      width: 180,
+      render: (value) => {
+        if (value === '0') {
+          return (
+            <span>不成功</span>
+          );
+        } else if (value === '1') {
+          return (
+            <span>成功</span>
+          );
+        }
+      },
+    }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 180,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+            <a>删除</a>
+          </Popconfirm>
+        </Fragment>
+      ),
+    }];
+    this.dateStrings = null;
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'integral/_clear' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    // const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'integral/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      this.props.dispatch({
+        type: 'integral/del',
+        payload: {
+          sid: item.id,
+        },
+      });
+    }
+  }
+
+  // 选择日期查询
+  onDateSearch = () => {
+    let params = {};
+    if (this.dateStrings !== null) {
+      params = {
+        ...params,
+        start: this.dateStrings[0],
+        end: this.dateStrings[1],
+      }
+    }
+    this.props.dispatch({
+      type: 'integral/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.changeReqParams({
+      page: pagination.current,
+    });
+  }
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'integral/get' });
+  }
+
+
+  // 修改所需的请求参数后再获取数据
+  changeReqParams = (params) => {
+    this.props.dispatch({
+      type: 'integral/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 查看详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'integral/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  // 添加
+  gotoAdd = () => {
+    this.props.dispatch({
+      type: 'integral/_showModal',
+      payload: { type: 'Add', item: {} },
+    });
+  }
+
+  render() {
+    const {
+      integral: { listData, reqParams },
+      getLoading,
+      delLoading,
+    } = this.props;
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={getLoading || delLoading}>
+            <Card
+              className={styles.listCard}
+              bordered={false}
+            >
+              <div className={styles.tableListOperator}>
+                <RangePicker
+                  defaultValue={[moment(`${moment().format('YYYY-MM')}-01`), moment(moment(), 'YYYY-MM-DD')]}
+                  onChange={(dates, dateStrings) => this.dateStrings = dateStrings}
+                />
+                <Button type="primary" style={{ marginLeft: 20 }} onClick={this.onDateSearch}>
+                  查询
+                </Button>
+              </div>
+              <Table
+                // className={styles.table}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                columns={this.columns}
+                dataSource={listData.list}
+                onChange={this.onPageSwitch}
+                pagination={{
+                  current: reqParams.page,
+                  defaultCurrent: 1,
+                  defaultPageSize: 15,
+                  total: listData.total,
+                }}
+              />
+            </Card>
+          </Spin>
+        </div>
+        <Add />
+        <Edit />
+        <Detail />
+      </PageHeaderLayout>
+    );
+  }
+}

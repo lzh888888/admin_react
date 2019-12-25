@@ -1,0 +1,88 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ cloudPrint }) => ({
+  cloudPrint,
+}))((props) => {
+  const {
+    dispatch,
+    cloudPrint: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => {};
+
+  const handCancel = () => {
+    dispatch({
+      type: 'cloudPrint/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const renderModelkey = () => {
+    const { modelkey } = activeItem;
+    const value = modelkey;
+    if (value === '0') {
+      return <span>WiFi打印</span>;
+    } else if (value === '1') {
+      return <span>蓝牙打印</span>;
+    } else if (value === '2') {
+      return <span>云打印</span>;
+    }
+  };
+
+  const renderStatu = () => {
+    const { statu } = activeItem;
+    const value = statu;
+    if (value === '-1') {
+      return <span>删除</span>;
+    } else if (value === '0') {
+      return <span>正常</span>;
+    } else if (value === '1') {
+      return <span>关闭</span>;
+    }
+  };
+
+  const items = [
+    { label: '打印机名称', content: activeItem.printname },
+    { label: '打印机品牌', content: activeItem.brand },
+    { label: '打印机IP地址、编号', content: activeItem.printer },
+    { label: '打印模式', content: activeItem.model },
+    { label: '打印方式', content: renderModelkey() },
+    { label: '打印页面大小', content: activeItem.pagesize },
+    { label: '状态', content: renderStatu() },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

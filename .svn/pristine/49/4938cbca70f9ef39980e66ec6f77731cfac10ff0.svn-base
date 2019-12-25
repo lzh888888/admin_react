@@ -1,0 +1,183 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Select } from 'antd';
+
+// import config from '../../../common/config';
+
+const Option = Select.Option;
+// const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  invoice,
+  loading,
+}) => ({
+  user,
+  invoice,
+  loading: !!loading.effects['invoice/add'],
+}))
+@Form.create()
+export default class extends Component {
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'invoice/_hideModal',
+      payload: { type: 'Add' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        billno: '',
+        userno: user.currentUser.phoneno,
+        company: '',
+        dutyno: '',
+        receipt_type: '',
+        register_addr: '',
+        register_tel: '',
+        bank: '',
+        bankno: '',
+        linkman: '',
+        addressee: '',
+        addressee_tel: '',
+        addressee_addr: user.currentUser.phoneno,
+        flat: '0',	// 0新增 1修改
+        ...values,
+      };
+      dispatch({ type: 'invoice/add', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      invoice: { showModalAdd },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+    // const FormProps = {
+    //   labelCol: {
+    //     span: 6,
+    //   },
+    //   wrapperCol: {
+    //     span: 14,
+    //   },
+    // };
+
+    return (
+      <Modal
+        title="新建发票"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalAdd}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="抬头名称">
+            {getFieldDecorator('company', {
+              initialValue: '',
+              rules: [{ required: true, message: '抬头名称' }],
+            })(
+              <Input placeholder="请输入抬头名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="税号">
+            {getFieldDecorator('dutyno', {
+              initialValue: '',
+              rules: [{ required: true, message: '税号' }],
+            })(
+              <Input placeholder="请输入税号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="发票类型">
+            {getFieldDecorator('receipt_type', {
+              initialValue: '普通发票',
+              rules: [{ required: true, message: '发票类型' }],
+            })(
+              <Select>
+                <Option value="普通发票">普通发票</Option>
+                <Option value="专用发票">专用发票</Option>
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="发票地址信息">
+            {getFieldDecorator('register_addr', {
+              initialValue: '',
+              rules: [{ required: true, message: '发票地址信息' }],
+            })(
+              <Input placeholder="请输入发票地址信息" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="发票联系信息">
+            {getFieldDecorator('register_tel', {
+              initialValue: '',
+              rules: [{ required: true, message: '发票联系信息' }],
+            })(
+              <Input placeholder="请输入发票联系信息" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="银行">
+            {getFieldDecorator('bank', {
+              initialValue: '',
+              rules: [{ required: true, message: '银行' }],
+            })(
+              <Input placeholder="请输入银行" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="银行账号">
+            {getFieldDecorator('bankno', {
+              initialValue: '',
+              rules: [{ required: true, message: '银行账号' }],
+            })(
+              <Input placeholder="请输入银行账号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系人">
+            {getFieldDecorator('linkman', {
+              initialValue: '',
+              rules: [{ required: true, message: '联系人' }],
+            })(
+              <Input placeholder="联系人" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系地址">
+            {getFieldDecorator('addressee', {
+              initialValue: '',
+              rules: [{ required: true, message: '联系地址' }],
+            })(
+              <Input placeholder="联系地址" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="联系电话">
+            {getFieldDecorator('addressee_tel', {
+              initialValue: '',
+              rules: [{ required: true, message: '联系电话' }],
+            })(
+              <Input placeholder="联系电话" />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

@@ -1,0 +1,124 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Select} from 'antd';
+
+// import config from '../../../common/config';
+
+const Option = Select.Option;
+// const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  consumption,
+  loading,
+}) => ({
+  user,
+  consumption,
+  loading: !!loading.effects['consumption/edit'],
+}))
+@Form.create()
+export default class extends Component {
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'consumption/_hideModal',
+      payload: { type: 'Edit' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+      consumption: { activeItem },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        uid: user.currentUser.phoneno,
+        username: activeItem.username || '',
+        pno: activeItem.phoneno || '',
+        type: '1',
+        allow: activeItem.allow || '',
+        isadmin: activeItem.isadmin || '',
+        billno: activeItem.billno,
+        ...values,
+      };
+      dispatch({ type: 'consumption/edit', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      consumption: { showModalEdit, activeItem },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="修改商家订单"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalEdit}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="用户名">
+            {getFieldDecorator('username', {
+              initialValue: activeItem.username,
+              rules: [{ required: true, message: '用户名' }],
+            })(
+              <Input placeholder="请输入用户名" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="手机号码">
+            {getFieldDecorator('pno', {
+              initialValue: activeItem.phoneno,
+              rules: [{ required: true, message: '手机号码' }],
+            })(
+              <Input placeholder="请输入手机号码" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="是否允许使用">
+            {getFieldDecorator('allow', {
+              initialValue: activeItem.allow,
+              rules: [{ required: true, message: '是否允许使用' }],
+            })(
+              <Select>
+                <Option value='1'>允许</Option>
+                <Option value='0'>不允许</Option>
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="是否为管理员">
+            {getFieldDecorator('isadmin', {
+              initialValue: activeItem.isadmin,
+              rules: [{ required: true, message: '是否为管理员' }],
+            })(
+              <Select>
+                <Option value='1'>是</Option>
+                <Option value='0'>否</Option>
+              </Select>
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

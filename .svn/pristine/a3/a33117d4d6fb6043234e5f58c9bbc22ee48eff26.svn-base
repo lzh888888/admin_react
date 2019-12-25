@@ -1,0 +1,21 @@
+.container {
+  .qrcode {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.setItem {
+  margin-top: 20px;
+}
+
+.btnWrap {
+  :global {
+    .ant-modal-body {
+      background-color: #f6f6f6;
+    }
+    .ant-modal-footer {
+      text-align: center;
+    }
+  }
+}

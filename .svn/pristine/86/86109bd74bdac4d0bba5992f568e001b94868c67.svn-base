@@ -1,0 +1,89 @@
+import React from 'react';
+import { connect } from 'dva';
+import { Modal } from 'antd';
+
+export default connect(({ renew }) => ({
+  renew,
+}))((props) => {
+  const {
+    dispatch,
+    renew: { showModalDetail, activeItem },
+  } = props;
+
+  const handleOk = () => {};
+
+  const handCancel = () => {
+    dispatch({
+      type: 'renew/_hideModal',
+      payload: { type: 'Detail' },
+    });
+  };
+
+  const renderIsok = () => {
+    const { isok } = activeItem;
+    const value = isok;
+    if (value === '1') {
+      return <span>已支付</span>;
+    } else if (value === '2') {
+      return <span>未支付</span>;
+    }
+  };
+
+  const renderInvoice = () => {
+    const { invoice } = activeItem;
+    const value = invoice;
+    if (value === '0') {
+      return <span>是</span>;
+    } else {
+      return false;
+    }
+  };
+
+  const items = [
+    { label: '日期', content: activeItem.billdate },
+    { label: '原价', content: activeItem.prime },
+    { label: '单价', content: activeItem.price },
+    { label: '合计', content: activeItem.amount },
+    { label: '许可数量', content: activeItem.license },
+    { label: '续费时长', content: activeItem.qty },
+    { label: '付款日期', content: activeItem.paydate },
+    { label: '生效日期', content: activeItem.avabledate },
+    { label: '结束日期', content: activeItem.overdate },
+    { label: '是否有开发票', content: renderInvoice() },
+    { label: '支付备注', content: activeItem.remark },
+    { label: '支付状态', content: renderIsok() },
+  ];
+
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+  };
+  const itemLabelStyle = {
+    width: 100,
+    color: '#74777c',
+  };
+  const itemContentStyle = {
+    flex: 1,
+    color: '#454a51',
+  };
+
+  return (
+    <Modal
+      title="详细"
+      footer={null}
+      maskClosable={false}
+      visible={showModalDetail}
+      onOk={handleOk}
+      onCancel={handCancel}
+    >
+      <div>
+        {items.map((v, k) => (
+          <div style={itemStyle} key={k}>
+            <p style={itemLabelStyle}>{v.label}</p>
+            <p style={itemContentStyle}>{v.content}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+});

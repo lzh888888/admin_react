@@ -1,0 +1,150 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, Select } from 'antd';
+
+// import config from '../../../common/config';
+
+const Option = Select.Option;
+// const RadioGroup = Radio.Group;
+
+@connect(({
+  user,
+  recharge,
+  loading,
+}) => ({
+  user,
+  recharge,
+  loading: !!loading.effects['recharge/add'],
+}))
+@Form.create()
+export default class extends Component {
+  handleCancel = () => {
+    this.props.dispatch({
+      type: 'recharge/_hideModal',
+      payload: { type: 'Add' },
+    });
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        admin: user.currentUser.phoneno,
+        brand: '',
+        sn: '',
+        key: '',
+        printname: '',
+        ...values,
+      };
+      dispatch({ type: 'recharge/add', payload: data });
+    });
+  }
+
+  render() {
+    const {
+      loading,
+      recharge: { showModalAdd },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="添加云打印机"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalAdd}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handleCancel}
+        afterClose={this.handAfterClose}
+      >
+        <Form layout="horizontal">
+          <Form.Item {...basicFormProps} label="打印机名称">
+            {getFieldDecorator('printname', {
+            })(
+              // <Select placeholder="选择打印机">
+              //   {config.rechargeMaps.map((v, k) => (
+              //     <Option key={k} value={v}>{v}</Option>
+              //   ))}
+              // </Select>
+              <Input placeholder="请输入打印机名称" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印机品牌">
+            {getFieldDecorator('brand', {
+              initialValue: '',
+              rules: [{ required: true, message: '打印机品牌' }],
+            })(
+              <Input placeholder="请输入打印机品牌" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印机IP、编号">
+            {getFieldDecorator('printer', {
+              initialValue: '',
+              rules: [{ required: true, message: '打印机IP、编号' }],
+            })(
+              <Input placeholder="请输入打印机IP地址、编号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印模式">
+            {getFieldDecorator('model', {
+              initialValue: '0',
+              rules: [{ required: true, message: '打印模式' }],
+            })(
+              <Select>
+                <Option value="0">网络模式</Option>
+                <Option value="1">云模式</Option>
+                <Option value="2">云打印</Option>
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印方式">
+            {getFieldDecorator('modelkey', {
+              initialValue: '0',
+              rules: [{ required: true, message: '打印方式' }],
+            })(
+              <Select>
+                <Option value="0">WiFi打印</Option>
+                <Option value="1">蓝牙打印</Option>
+                <Option value="2">云打印</Option>
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印机序列号">
+            {getFieldDecorator('sn', {
+              initialValue: '',
+              rules: [{ required: true, message: '打印机序列号' }],
+            })(
+              <Input placeholder="请输入打印机序列号" />
+            )}
+          </Form.Item>
+          <Form.Item {...basicFormProps} label="打印机密钥">
+            {getFieldDecorator('key', {
+              initialValue: '',
+              rules: [{ required: true, message: '打印机密钥' }],
+            })(
+              <Input placeholder="请输入打印机密钥" />
+            )}
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}

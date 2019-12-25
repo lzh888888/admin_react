@@ -1,0 +1,240 @@
+import React, { Component } from 'react';
+import { connect } from 'dva';
+import { Modal, Form, Input, DatePicker, message, InputNumber } from 'antd';
+import moment from 'moment';
+
+import ChooseImage from '../../../cps/ChooseImage';
+import SelectCustomer from '../../SelectList/SelectCustomer';
+
+@connect(({
+  user,
+  contract,
+  loading,
+}) => ({
+  user,
+  contract,
+  loading: !!loading.effects['contract/edit'],
+}))
+@Form.create()
+export default class extends Component {
+  constructor(props) {
+    super(props);
+    this.images = {};
+    this.customer = { customerno: '' };
+  }
+
+  // 去选择客户
+  goSelectCustomer = () => {
+    this.props.dispatch({
+      type: 'selectCustomer/modalVisible',
+      payload: { show: true },
+    });
+  }
+
+  // 选择客户回调
+  selectCustomerCB = ({ phoneno, username }) => {
+    this.customer = { customerno: phoneno };
+    this.props.form.setFieldsValue({ 'customername': username });
+  }
+
+  // 弹出框关闭后要清空
+  handAfterClose = () => {
+    this.images = {};
+    this.customer = { customerno: '' };
+  }
+
+  handCancel = () => {
+    this.props.dispatch({
+      type: 'contract/_hideModal',
+      payload: { type: 'Edit' },
+    });
+  }
+
+  // 提交
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const {
+      user,
+      dispatch,
+      contract: { activeItem },
+      form: { validateFieldsAndScroll },
+    } = this.props;
+    validateFieldsAndScroll((err, values) => {
+      if (err) return;
+      const data = {
+        billno: activeItem.billno,
+        image1: activeItem.image1,
+        image2: activeItem.image2,
+        image3: activeItem.image3,
+        customerno: activeItem.customerno,
+        customername: activeItem.customername,
+        title: activeItem.title,
+        contrano: activeItem.contrano,
+        amount: activeItem.amount,
+        paid: activeItem.paid,
+        linkman: activeItem.linkman,
+        tel: activeItem.tel,
+        address: activeItem.address,
+        introduction: activeItem.introduction,
+        userno: user.currentUser.phoneno,
+        username: activeItem.username,
+        flat: '1',
+        // flat: '1', // 0 新增，1 编辑
+        // image1,
+        // image2,
+        // image3,
+        // billno,
+        // userno,
+        // username,
+        // customerno: this.customer.customerno || customerno, // 有选择新的则取新的
+        ...this.images,
+        ...values,
+        contradate: values.contradate.format('YYYY-MM-DD'), // 格式化
+      };
+      if (!data.image1) {
+        message.error('请至少选择上传第一张图片！');
+        return;
+      }
+      dispatch({ type: 'contract/edit', payload: data });
+    });
+  }
+
+  renderAvatar = () => {
+    const { image1, image2, image3 } = this.props.contract.activeItem;
+    return (
+      <div className="avatar-container">
+        <ChooseImage
+          source={image1}
+          onClear={() => this.images.image1 = ''}
+          onChange={base64 => this.images.image1 = base64}
+        />
+        <ChooseImage
+          source={image2}
+          onClear={() => this.images.image2 = ''}
+          onChange={base64 => this.images.image2 = base64}
+        />
+        <ChooseImage
+          source={image3}
+          onClear={() => this.images.image3 = ''}
+          onChange={base64 => this.images.image3 = base64}
+        />
+      </div>
+    );
+  }
+
+  render() {
+    const {
+      loading,
+      // contract: { showModalEdit, activeItem: item },
+      contract: { showModalEdit, activeItem },
+      form: { getFieldDecorator },
+    } = this.props;
+
+    // 基础表单参数
+    const basicFormProps = {
+      labelCol: {
+        span: 6,
+      },
+      wrapperCol: {
+        span: 14,
+      },
+      hasFeedback: true,
+    };
+
+    return (
+      <Modal
+        title="修改合同"
+        destroyOnClose
+        maskClosable={false}
+        visible={showModalEdit}
+        confirmLoading={loading}
+        onOk={this.handleSubmit}
+        onCancel={this.handCancel}
+        afterClose={this.handAfterClose}
+      >
+        <div>
+          <Form layout="horizontal">
+            <Form.Item {...basicFormProps} label="合同名称">
+              {getFieldDecorator('title', {
+                initialValue: activeItem.title,
+                rules: [{ required: true, message: '请输入合同名称' }],
+              })(
+                <Input placeholder="合同名称" />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="合同编号">
+              {getFieldDecorator('contrano', {
+                initialValue: activeItem.contrano,
+                rules: [{ required: true, message: '请输入合同编号' }],
+              })(
+                <Input placeholder="合同编号" />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="合同日期">
+              {getFieldDecorator('contradate', {
+                initialValue: moment(activeItem.contradate, 'YYYY-MM-DD'),
+                rules: [{ type: 'object', required: true, message: '请选择日期!' }],
+              })(
+                <DatePicker style={{ width: '100%' }} />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="合同金额">
+              {getFieldDecorator('amount', {
+                initialValue: activeItem.tel,
+              })(
+                <InputNumber min={1} step={0.1} placeholder="合同金额"  />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="已付金额">
+              {getFieldDecorator('paid', {
+                initialValue: activeItem.paid,
+              })(
+                <InputNumber min={1} style={{width: 120}} step={0.1} placeholder="已付合同金额"  />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="客户[必须]">
+              {getFieldDecorator('customername', {
+                initialValue: activeItem.customername,
+                rules: [{ required: true, message: '请选择客户！' }],
+              })(
+                <Input placeholder="请选择客户" readOnly onClick={this.goSelectCustomer} />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="联系人">
+              {getFieldDecorator('linkman', {
+                initialValue: activeItem.linkman,
+              })(
+                <Input placeholder="联系人" />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="联系电话">
+              {getFieldDecorator('tel', {
+                initialValue: activeItem.tel,
+              })(
+                <Input placeholder="联系电话" />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="联系地址">
+              {getFieldDecorator('address', {
+                initialValue: activeItem.address,
+              })(
+                <Input placeholder="联系地址" />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="合同描述">
+              {getFieldDecorator('introduction', {
+                initialValue: activeItem.introduction,
+              })(
+                <Input.TextArea placeholder="合同描述" autosize={{ minRows: 4, maxRows: 6 }} />
+              )}
+            </Form.Item>
+            <Form.Item {...basicFormProps} label="合同图片">
+              {this.renderAvatar()}
+            </Form.Item>
+          </Form>
+          {<SelectCustomer handOk={this.selectCustomerCB} />}
+        </div>
+      </Modal>
+    );
+  }
+}

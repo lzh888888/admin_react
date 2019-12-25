@@ -1,0 +1,216 @@
+import React, { PureComponent, Fragment } from 'react';
+import { connect } from 'dva';
+import { Spin, Table, Card, Divider, Popconfirm, Dropdown, Menu, Icon, Button } from 'antd';
+
+import PageHeaderLayout from '../../../layouts/PageHeaderLayout';
+
+import Add from './Add';
+import Edit from './Edit';
+import Detail from './Detail';
+
+
+import styles from './index.less';
+
+@connect(({
+  user,
+  vip,
+  loading,
+}) => ({
+  user,
+  vip,
+  getLoading: !!loading.effects['vip/get'],
+  delLoading: !!loading.effects['vip/add'],
+  delLoading: !!loading.effects['vip/del'],
+}))
+export default class extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.columns = [{
+      title: '用户名',
+      dataIndex: 'username',
+      width: 130,
+    }, {
+      title: '会员卡号',
+      dataIndex: 'carno',
+      width: 130,
+    }, {
+      title: '累计充值',
+      dataIndex: 'totalrcharge',
+      width: 130,
+    }, {
+      title: '余额',
+      dataIndex: 'balance',
+      width: 130,
+    }, {
+      title: '累计积分',
+      dataIndex: 'totalpoint',
+      width: 130,
+    }, {
+      title: '现有积分',
+      dataIndex: 'remainpoint',
+      width: 130,
+    }, {
+      title: '店管理员号',
+      dataIndex: 'admin',
+      width: 200,
+    }, {
+      title: '操作员手机号',
+      dataIndex: 'opno',
+      width: 200,
+    }, {
+      title: '用户昵称',
+      dataIndex: 'nickname',
+      width: 130,
+    }, {
+      title: '职位',
+      dataIndex: 'post',
+      width: 130,
+    }, {
+      title: '服务企业',
+      dataIndex: 'company',
+      width: 170,
+    }, {
+      title: '操作',
+      key: 'action',
+      fixed: 'right',
+      width: 130,
+      render: text => (
+        <Fragment>
+          <a onClick={() => this.gotoDetail(text)}>详细</a>
+          <Divider type="vertical" />
+          <Dropdown
+            overlay={
+              <Menu>
+                <Menu.Item>
+                  <a onClick={() => this.onAction(text, '编辑')}>编辑</a>
+                </Menu.Item>
+                {/* <Menu.Item>
+                  <Popconfirm title="确定删除？" onConfirm={() => this.onAction(text, '删除')}>
+                    <a>删除</a>
+                  </Popconfirm>
+                </Menu.Item> */}
+              </Menu>
+            }
+          >
+            <a>更多 <Icon type="down" /></a>
+          </Dropdown>
+        </Fragment>
+      ),
+    }];
+  }
+
+  componentDidMount() {
+    this.getList();
+  }
+
+  componentWillUnmount() {
+    this.props.dispatch({ type: 'vip/_clear' });
+  }
+
+  // 查询
+  onSearch(value) {
+    this.changeReqParams({
+      page: 1,
+      keyword: value,
+    });
+  }
+
+  // 处理
+  onAction = (item, type) => {
+    const { phoneno } = this.props.user.currentUser;
+    if (type === '编辑') {
+      this.props.dispatch({
+        type: 'vip/_showModal',
+        payload: { type: 'Edit', item },
+      });
+    } else if (type === '删除') {
+      // this.props.dispatch({
+      //   type: 'vip/del',
+      //   payload: {
+      //     sid: item.id,
+      //   },
+      // });
+    }
+  }
+
+  // 页数切换
+  onPageSwitch = (pagination) => {
+    this.changeReqParams({
+      page: pagination.current,
+    });
+  }
+
+  // 获取数据
+  getList = () => {
+    this.props.dispatch({ type: 'vip/get' });
+  }
+
+
+  // 修改所需的请求参数后再获取数据
+  changeReqParams = (params) => {
+    this.props.dispatch({
+      type: 'vip/_changeReqParams',
+      payload: params,
+    });
+    this.getList();
+  }
+
+  // 查看详情
+  gotoDetail = (text) => {
+    this.props.dispatch({
+      type: 'vip/_showModal',
+      payload: { type: 'Detail', item: text },
+    });
+  }
+
+  // 添加
+  gotoAdd = () => {
+    this.props.dispatch({
+      type: 'vip/_showModal',
+      payload: { type: 'Add', item: {} },
+    });
+  }
+
+  render() {
+    const {
+      vip: { listData, reqParams },
+      getLoading,
+      delLoading,
+    } = this.props;
+    return (
+      <PageHeaderLayout>
+        <div className={styles.tableList}>
+          <Spin spinning={getLoading || delLoading}>
+            <Card
+              className={styles.listCard}
+              bordered={false}
+            >
+              {/* <div className={styles.tableListOperator}> */}
+                <Button icon="plus" type="primary" onClick={this.gotoAdd}>
+                  添加会员
+                </Button>
+              {/* </div> */}
+              <Table
+                // className={styles.table}
+                // scroll={{ x: 1250, y: 350 }}
+                rowKey="id"
+                columns={this.columns}
+                dataSource={listData.list}
+                onChange={this.onPageSwitch}
+                pagination={{
+                  current: reqParams.page,
+                  defaultCurrent: 1,
+                  defaultPageSize: 15,
+                  total: listData.total,
+                }}
+              />
+            </Card>
+          </Spin>
+        </div>
+        <Add />
+        <Edit />
+        <Detail />
+      </PageHeaderLayout>
+    );
+  }
+}
